@@ -22,11 +22,11 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         {params.erro ? <p className="badge danger">Credenciais inválidas</p> : null}
         <div className="field">
           <label htmlFor="email">E-mail</label>
-          <input id="email" name="email" type="email" defaultValue="admin@nossozelo.com.br" required />
+          <input id="email" name="email" type="email" autoComplete="username" required />
         </div>
         <div className="field" style={{ marginTop: 12 }}>
           <label htmlFor="senha">Senha</label>
-          <input id="senha" name="senha" type="password" defaultValue="admin123" required />
+          <input id="senha" name="senha" type="password" autoComplete="current-password" required />
         </div>
         <button className="button" style={{ width: "100%", justifyContent: "center", marginTop: 18 }}>
           Entrar
