@@ -147,11 +147,49 @@ textarea {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.grid.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .card {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 18px;
+}
+
+.export-tile {
+  min-height: 190px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.export-tile svg {
+  color: var(--brand);
+}
+
+.export-tile strong {
+  font-size: 18px;
+}
+
+.export-tile span {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.export-tile em {
+  color: var(--brand-strong);
+  font-style: normal;
+  font-weight: 700;
+  margin-top: auto;
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
 }
 
 .metric {
@@ -175,6 +213,23 @@ textarea {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 14px;
+}
+
+.actions-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.inline-field {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.inline-field input {
+  width: auto;
 }
 
 .button,
@@ -332,6 +387,7 @@ textarea {
 
   .grid.cards,
   .grid.two,
+  .grid.three,
   .form-grid {
     grid-template-columns: 1fr;
   }

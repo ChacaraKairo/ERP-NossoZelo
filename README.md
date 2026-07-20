@@ -15,6 +15,8 @@ Criar um ERP próprio para centralizar a gestão da empresa que opera o NossoZel
 - assinaturas e pagamentos;
 - suporte;
 - tarefas internas;
+- fechamento mensal;
+- backup e exportação manual;
 - auditoria administrativa;
 - relatórios de operação.
 
@@ -49,6 +51,8 @@ O MVP do ERP deve conter:
 - clientes e prestadores;
 - suporte/chamados;
 - tarefas internas;
+- fechamento mensal;
+- backup e exportação manual;
 - auditoria;
 - relatórios básicos.
 
@@ -125,6 +129,8 @@ Inclui:
 - marketplace: clientes, prestadores e assinaturas;
 - suporte/chamados;
 - tarefas internas;
+- fechamento mensal com resumo, pendências e registro auditável;
+- exportação manual de dados em JSON e financeiro em CSV;
 - relatórios básicos;
 - auditoria;
 - configurações;

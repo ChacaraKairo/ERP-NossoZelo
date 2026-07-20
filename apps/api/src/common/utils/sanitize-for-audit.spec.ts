@@ -15,4 +15,10 @@ describe("sanitizeForAudit", () => {
       nested: { apiKey: "[REDACTED]", token: "[REDACTED]", ok: true },
     });
   });
+
+  it("serializes objects that expose toJSON", () => {
+    const result = sanitizeForAudit({ valor: { toJSON: () => "10.50" } });
+
+    expect(result).toEqual({ valor: "10.50" });
+  });
 });

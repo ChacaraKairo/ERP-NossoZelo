@@ -23,6 +23,10 @@ export const permissionsByRole: Record<string, string[]> = {
     "fiscal:create",
     "fiscal:update",
     "relatorios:read",
+    "fechamento:read",
+    "fechamento:close",
+    "backup:read",
+    "backup:create",
   ],
   OPERACAO: [
     "dashboard:read",
@@ -61,6 +65,8 @@ export const permissionsByRole: Record<string, string[]> = {
     "riscos:update",
     "riscos:delete",
     "relatorios:read",
+    "fechamento:read",
+    "backup:read",
   ],
 };
 

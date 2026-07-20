@@ -17,8 +17,12 @@
 - [x] Conta paga gera lançamento financeiro.
 - [x] Conta recebida gera lançamento financeiro.
 - [x] Endpoint de alertas calculados.
+- [x] Fechamento mensal com resumo, pendências e registro auditável.
+- [x] Exportação manual de dados em JSON.
+- [x] Exportação financeira em CSV.
+- [x] Registro visual do último backup manual.
 - [ ] Upload de anexos em S3.
 - [ ] Telas completas de edição para todos os recursos.
 - [ ] Integração real com banco do marketplace.
-- [ ] Backup testado.
+- [ ] Restore de backup PostgreSQL testado em ambiente limpo.
 - [ ] Fluxo obrigatório de troca de senha.

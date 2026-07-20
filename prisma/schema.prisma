@@ -28,6 +28,8 @@ model ErpEmpresa {
   obrigacoes    ErpObrigacaoFiscal[]
   notasFiscais  ErpNotaFiscal[]
   fornecedores  ErpFornecedor[]
+  fechamentos   ErpFechamentoMensal[]
+  backups       ErpBackupRegistro[]
 }
 
 model ErpUsuarioInterno {
@@ -236,6 +238,52 @@ model ErpNotaFiscal {
   excluidoEm       DateTime?
 
   empresa ErpEmpresa @relation(fields: [empresaId], references: [id])
+}
+
+model ErpFechamentoMensal {
+  id                    Int      @id @default(autoincrement())
+  empresaId             Int
+  ano                   Int
+  mes                   Int
+  status                String   @default("ABERTO")
+  receitaTotal          Decimal  @default(0)
+  despesaTotal          Decimal  @default(0)
+  resultado             Decimal  @default(0)
+  contasPagarAbertas    Int      @default(0)
+  contasReceberAbertas  Int      @default(0)
+  obrigacoesPendentes   Int      @default(0)
+  notasEmitidas         Int      @default(0)
+  servicosPagos         Int      @default(0)
+  problemasAbertos      Int      @default(0)
+  decisoesRegistradas   Int      @default(0)
+  pendenciasProximoMes  Json?
+  resumo                Json
+  fechadoPorId          Int?
+  fechadoEm             DateTime?
+  criadoEm              DateTime @default(now())
+  atualizadoEm          DateTime @updatedAt
+
+  empresa ErpEmpresa @relation(fields: [empresaId], references: [id])
+
+  @@unique([empresaId, ano, mes])
+  @@index([ano, mes])
+  @@index([status])
+}
+
+model ErpBackupRegistro {
+  id             Int      @id @default(autoincrement())
+  empresaId      Int?
+  tipo           String
+  formato        String
+  descricao      String?
+  tamanhoBytes   Int?
+  geradoPorId    Int?
+  criadoEm       DateTime @default(now())
+
+  empresa ErpEmpresa? @relation(fields: [empresaId], references: [id])
+
+  @@index([criadoEm])
+  @@index([tipo])
 }
 
 model MarketplaceCliente {

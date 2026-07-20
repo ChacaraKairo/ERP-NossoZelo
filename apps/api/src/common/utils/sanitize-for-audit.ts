@@ -18,6 +18,7 @@ export function sanitizeForAudit(data: unknown): unknown {
   if (data instanceof Date) return data.toISOString();
   if (Array.isArray(data)) return data.map((item) => sanitizeForAudit(item));
   if (typeof data !== "object") return data;
+  if ("toJSON" in data && typeof data.toJSON === "function") return data.toJSON();
 
   return Object.fromEntries(
     Object.entries(data as Record<string, unknown>).map(([key, value]) => {

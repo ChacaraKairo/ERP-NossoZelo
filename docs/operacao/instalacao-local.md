@@ -54,3 +54,19 @@ npm run typecheck
 npm run build
 npm run test
 ```
+
+## Backup e restore local
+
+O ERP possui tela de exportação em `/backup` com JSON completo e CSV financeiro. Para cópia fiel do PostgreSQL local, use também:
+
+```bash
+docker compose exec -T postgres pg_dump -U nossozelo -d nossozelo_erp > backup-nossozelo.sql
+```
+
+Para restaurar em um banco local limpo:
+
+```bash
+docker compose exec -T postgres psql -U nossozelo -d nossozelo_erp < backup-nossozelo.sql
+```
+
+Após restaurar, rode a validação básica da aplicação.
