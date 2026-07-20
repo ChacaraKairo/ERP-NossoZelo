@@ -7,3 +7,10 @@ export async function registrarBackupManual() {
   await apiPost("/exportacoes/backup/manual");
   revalidatePath("/backup");
 }
+
+export async function gerarBackupLocal(formData: FormData) {
+  await apiPost("/exportacoes/backup/local", {
+    destino: String(formData.get("destino") ?? ""),
+  });
+  revalidatePath("/backup");
+}

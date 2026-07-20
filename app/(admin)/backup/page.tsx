@@ -4,10 +4,13 @@ import { MetricCard } from "@/components/MetricCard";
 import { apiGet } from "@/lib/api";
 import { publicApiUrl } from "@/lib/api-url";
 import { dateBR } from "@/lib/format";
-import { registrarBackupManual } from "./actions";
+import { gerarBackupLocal, registrarBackupManual } from "./actions";
 
 export default async function BackupPage() {
-  const ultimoBackup = await apiGet<any | null>("/exportacoes/ultimo-backup");
+  const [ultimoBackup, destinos] = await Promise.all([
+    apiGet<any | null>("/exportacoes/ultimo-backup"),
+    apiGet<{ label: string; path: string }[]>("/exportacoes/backup/destinos"),
+  ]);
 
   return (
     <>
@@ -16,17 +19,40 @@ export default async function BackupPage() {
       <div className="grid cards">
         <MetricCard label="Último backup registrado" value={ultimoBackup ? dateBR(ultimoBackup.criadoEm) : "Nunca"} tone={ultimoBackup ? "ok" : "warn"} />
         <MetricCard label="Formato principal" value="JSON" />
-        <MetricCard label="Financeiro" value="CSV" />
-        <MetricCard label="Rotina" value="Manual" />
+        <MetricCard label="Banco completo" value="SQL + dump" />
+        <MetricCard label="Destinos encontrados" value={String(destinos.length)} />
       </div>
 
       <div className="toolbar" style={{ marginTop: 22 }}>
         <div>
-          <h2>Arquivos disponíveis</h2>
-          <p className="muted">Baixe os dados essenciais e registre o backup no histórico do ERP.</p>
+          <h2>Backup em pasta escolhida</h2>
+          <p className="muted">Informe uma pasta montada no notebook. A nova versão é criada primeiro e depois substitui a antiga.</p>
+        </div>
+      </div>
+      <form className="card" action={gerarBackupLocal}>
+        <div className="form-grid">
+          <div className="field full">
+            <label htmlFor="destino">Pasta de destino</label>
+            <input id="destino" name="destino" list="destinos-backup" placeholder="/run/media/chacara/KING-128G-K" required />
+            <datalist id="destinos-backup">
+              {destinos.map((destino) => (
+                <option value={destino.path} key={destino.path}>{destino.label}</option>
+              ))}
+            </datalist>
+          </div>
+        </div>
+        <button className="button" style={{ marginTop: 18 }} type="submit">
+          <DatabaseBackup size={17} /> Gerar backup completo
+        </button>
+      </form>
+
+      <div className="toolbar" style={{ marginTop: 22 }}>
+        <div>
+          <h2>Arquivos disponíveis para download</h2>
+          <p className="muted">Baixe os dados essenciais no navegador ou registre um backup manual simples.</p>
         </div>
         <form action={registrarBackupManual}>
-          <button className="button" type="submit">
+          <button className="button secondary" type="submit">
             <DatabaseBackup size={17} /> Registrar backup
           </button>
         </form>

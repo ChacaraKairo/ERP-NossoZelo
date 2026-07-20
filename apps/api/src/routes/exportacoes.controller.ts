@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Query, Req, Res } from "@nestjs/common";
+import { Body, Controller, Get, Post, Query, Req, Res } from "@nestjs/common";
 import type { Response } from "express";
 import { RequirePermission } from "../common/decorators/require-permission.decorator";
 import type { RequestWithContext } from "../common/types/request-user";
@@ -25,6 +25,34 @@ export class ExportacoesController {
     await this.audit.create({
       usuarioId: request.user?.id,
       acao: "registrar_backup_manual",
+      modulo: "backup",
+      entidadeTipo: "backupRegistro",
+      entidadeId: row.id,
+      metodoHttp: request.method,
+      rota: request.path,
+      dadosNovos: row,
+      requestId: request.requestId,
+      sessionId: request.session?.id,
+      deviceId: request.session?.deviceId,
+      ip: request.ip,
+      userAgent: request.get("user-agent"),
+    });
+    return row;
+  }
+
+  @Get("backup/destinos")
+  @RequirePermission("backup:read")
+  destinosBackup() {
+    return this.exportacoes.destinosBackup();
+  }
+
+  @Post("backup/local")
+  @RequirePermission("backup:create")
+  async backupLocal(@Body() body: { destino?: string }, @Req() request: RequestWithContext) {
+    const row = await this.exportacoes.backupLocal(body.destino, request.user?.id);
+    await this.audit.create({
+      usuarioId: request.user?.id,
+      acao: "gerar_backup_local",
       modulo: "backup",
       entidadeTipo: "backupRegistro",
       entidadeId: row.id,

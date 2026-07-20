@@ -1,5 +1,14 @@
+import { createHash } from "node:crypto";
+import { execFile } from "node:child_process";
+import { existsSync } from "node:fs";
+import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { promisify } from "node:util";
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "./prisma.service";
+
+const execFileAsync = promisify(execFile);
+const currentBackupFolder = "ERP-NossoZelo-backup-atual";
 
 @Injectable()
 export class ExportacoesService {
@@ -20,6 +29,85 @@ export class ExportacoesService {
         geradoPorId,
       },
     });
+  }
+
+  async backupLocal(destino: string | undefined, geradoPorId?: number) {
+    const empresaId = await this.getDefaultEmpresaId();
+    const mountPoint = await this.resolveBackupDestination(destino);
+    const stamp = this.timestamp();
+    const tempDir = join(mountPoint, `ERP-NossoZelo-backup-novo-${stamp}`);
+    const currentDir = join(mountPoint, currentBackupFolder);
+    const oldDir = join(mountPoint, `ERP-NossoZelo-backup-antigo-${stamp}`);
+
+    await mkdir(tempDir, { recursive: true });
+    const sqlFile = `erp-nossozelo-${stamp}.sql`;
+    const dumpFile = `erp-nossozelo-${stamp}.dump`;
+    const jsonFile = `erp-nossozelo-${stamp}.json`;
+    const financeiroFile = `financeiro-${stamp}.csv`;
+    const contasPagarFile = `contas-a-pagar-${stamp}.csv`;
+
+    await Promise.all([
+      this.writePgDump(join(tempDir, sqlFile), ["--clean", "--if-exists"]),
+      this.writePgDump(join(tempDir, dumpFile), ["-Fc"]),
+      writeFile(join(tempDir, jsonFile), `${JSON.stringify(await this.dadosJson(), null, 2)}\n`),
+      writeFile(join(tempDir, financeiroFile), await this.financeiroCsv()),
+      writeFile(join(tempDir, contasPagarFile), await this.contasPagarCsv()),
+      writeFile(join(tempDir, "schema.prisma"), await readFile("prisma/schema.prisma", "utf8")),
+      writeFile(join(tempDir, "contagens.txt"), await this.contagens()),
+    ]);
+
+    await writeFile(
+      join(tempDir, "README-backup.txt"),
+      this.backupReadme({ stamp, sqlFile, dumpFile, jsonFile, financeiroFile, contasPagarFile }),
+    );
+    await this.writeChecksums(tempDir);
+    await this.validateBackup(tempDir, [sqlFile, dumpFile, jsonFile, financeiroFile, contasPagarFile, "schema.prisma", "contagens.txt", "README-backup.txt", "sha256sums.txt"]);
+
+    let movedOld = false;
+    try {
+      if (existsSync(currentDir)) {
+        await rename(currentDir, oldDir);
+        movedOld = true;
+      }
+      await rename(tempDir, currentDir);
+      if (movedOld) await rm(oldDir, { recursive: true, force: true });
+    } catch (error) {
+      if (movedOld && !existsSync(currentDir) && existsSync(oldDir)) {
+        await rename(oldDir, currentDir);
+      }
+      throw error;
+    }
+
+    const totalBytes = await this.dirSize(currentDir);
+    return this.prisma.erpBackupRegistro.create({
+      data: {
+        empresaId,
+        tipo: "local",
+        formato: "sql_dump_json_csv",
+        descricao: `Backup completo em ${currentDir}`,
+        tamanhoBytes: totalBytes,
+        geradoPorId,
+      },
+    });
+  }
+
+  async destinosBackup() {
+    const roots = [
+      join("/run/media", process.env.USER ?? ""),
+      join("/media", process.env.USER ?? ""),
+      "/mnt",
+    ];
+    const destinos: { label: string; path: string }[] = [];
+    for (const root of roots) {
+      if (!existsSync(root)) continue;
+      for (const entry of await readdir(root, { withFileTypes: true })) {
+        if (entry.isDirectory()) {
+          const path = join(root, entry.name);
+          destinos.push({ label: entry.name, path });
+        }
+      }
+    }
+    return destinos;
   }
 
   async dadosJson() {
@@ -159,5 +247,112 @@ export class ExportacoesService {
       select: { id: true },
     });
     return created.id;
+  }
+
+  private async resolveBackupDestination(destino: string | undefined) {
+    const normalized = destino?.trim();
+    if (!normalized) throw new Error("Informe a pasta onde o backup deve ser salvo.");
+    if (!existsSync(normalized) || !(await stat(normalized)).isDirectory()) {
+      throw new Error(`Pasta de backup não encontrada: ${normalized}`);
+    }
+    const probe = join(normalized, `.erp-nossozelo-write-test-${Date.now()}`);
+    await writeFile(probe, "ok");
+    await rm(probe);
+    return normalized;
+  }
+
+  private async writePgDump(outputPath: string, extraArgs: string[]) {
+    const args = ["compose", "exec", "-T", "postgres", "pg_dump", "-U", "erp_nossozelo", "-d", "erp_nossozelo", ...extraArgs];
+    const { stdout } = await execFileAsync("docker", args, { encoding: "buffer", maxBuffer: 1024 * 1024 * 100 });
+    await writeFile(outputPath, stdout);
+  }
+
+  private async contagens() {
+    const [
+      empresas,
+      usuarios,
+      categorias,
+      servicos,
+      gastosFixos,
+      contasPagar,
+      contasReceber,
+      lancamentos,
+      auditoria,
+    ] = await Promise.all([
+      this.prisma.erpEmpresa.count(),
+      this.prisma.erpUsuarioInterno.count(),
+      this.prisma.erpCategoriaFinanceira.count(),
+      this.prisma.erpServicoContratado.count(),
+      this.prisma.erpGastoFixo.count(),
+      this.prisma.erpContaPagar.count(),
+      this.prisma.erpContaReceber.count(),
+      this.prisma.erpLancamentoFinanceiro.count(),
+      this.prisma.erpAuditoria.count(),
+    ]);
+    return [
+      `empresas=${empresas}`,
+      `usuarios=${usuarios}`,
+      `categorias=${categorias}`,
+      `servicos=${servicos}`,
+      `gastos_fixos=${gastosFixos}`,
+      `contas_pagar=${contasPagar}`,
+      `contas_receber=${contasReceber}`,
+      `lancamentos=${lancamentos}`,
+      `auditoria=${auditoria}`,
+      "",
+    ].join("\n");
+  }
+
+  private backupReadme(files: Record<string, string>) {
+    return [
+      "Backup ERP NossoZelo",
+      `Gerado em: ${new Date().toISOString()}`,
+      "Destino escolhido pelo usuário no ERP.",
+      "",
+      "Este backup substitui sempre a pasta anterior depois que a nova versão é criada e validada.",
+      "",
+      "Arquivos:",
+      `- ${files.sqlFile}: dump SQL completo`,
+      `- ${files.dumpFile}: dump custom para pg_restore`,
+      `- ${files.jsonFile}: exportação JSON consultável`,
+      `- ${files.financeiroFile}: lançamentos financeiros em CSV`,
+      `- ${files.contasPagarFile}: contas a pagar em CSV`,
+      "- schema.prisma: schema da aplicação no momento do backup",
+      "- contagens.txt: contagens principais",
+      "- sha256sums.txt: checksums dos arquivos",
+      "",
+      "Restaurar SQL local:",
+      `docker compose exec -T postgres psql -U erp_nossozelo -d erp_nossozelo < ${files.sqlFile}`,
+      "",
+      "Restaurar dump custom local:",
+      `docker compose exec -T postgres pg_restore -U erp_nossozelo -d erp_nossozelo --clean --if-exists < ${files.dumpFile}`,
+      "",
+    ].join("\n");
+  }
+
+  private async writeChecksums(dir: string) {
+    const files = (await readdir(dir)).filter((file) => file !== "sha256sums.txt").sort();
+    const lines = await Promise.all(files.map(async (file) => `${createHash("sha256").update(await readFile(join(dir, file))).digest("hex")}  ${file}`));
+    await writeFile(join(dir, "sha256sums.txt"), `${lines.join("\n")}\n`);
+  }
+
+  private async validateBackup(dir: string, files: string[]) {
+    for (const file of files) {
+      const fileStat = await stat(join(dir, file));
+      if (!fileStat.isFile() || fileStat.size === 0) throw new Error(`Arquivo de backup inválido: ${file}`);
+    }
+  }
+
+  private async dirSize(dir: string): Promise<number> {
+    const entries = await readdir(dir, { withFileTypes: true });
+    const sizes = await Promise.all(entries.map(async (entry) => {
+      const path = join(dir, entry.name);
+      return entry.isDirectory() ? this.dirSize(path) : (await stat(path)).size;
+    }));
+    return sizes.reduce((sum, size) => sum + size, 0);
+  }
+
+  private timestamp() {
+    return new Date().toISOString().replace(/[-:]/g, "").replace(/\..+/, "").replace("T", "-");
   }
 }
