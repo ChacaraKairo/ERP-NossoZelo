@@ -129,6 +129,10 @@ textarea {
   font-size: 30px;
 }
 
+.back-button {
+  margin-bottom: 12px;
+}
+
 .page-title p {
   margin: 0;
   color: var(--muted);

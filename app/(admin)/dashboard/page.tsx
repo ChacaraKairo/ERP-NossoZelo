@@ -18,6 +18,7 @@ export default async function DashboardPage() {
         title="Dashboard"
         description="Saúde financeira, fiscal e operacional da empresa."
         action={<Link className="button" href="/financeiro/lancamentos/novo"><Plus size={17} /> Lançamento</Link>}
+        showBack={false}
       />
       <div className="grid cards">
         <MetricCard label="Receita do mês" value={money(receita)} tone="ok" />
