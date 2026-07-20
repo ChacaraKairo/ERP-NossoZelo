@@ -1,0 +1,344 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ErpEmpresa {
+  id                Int      @id @default(autoincrement())
+  razaoSocial       String
+  nomeFantasia      String
+  cnpj              String?
+  tipoEmpresa       String   @default("MEI")
+  regimeTributario  String   @default("SIMEI")
+  dataAbertura      DateTime?
+  emailPrincipal    String?
+  telefonePrincipal String?
+  status            String   @default("ativa")
+  criadoEm          DateTime @default(now())
+  atualizadoEm      DateTime @updatedAt
+
+  lancamentos   ErpLancamentoFinanceiro[]
+  contasPagar   ErpContaPagar[]
+  contasReceber ErpContaReceber[]
+  servicos      ErpServicoContratado[]
+  obrigacoes    ErpObrigacaoFiscal[]
+  notasFiscais  ErpNotaFiscal[]
+}
+
+model ErpUsuarioInterno {
+  id           Int        @id @default(autoincrement())
+  nome         String
+  email        String     @unique
+  senhaHash    String
+  perfil       String       @default("FUNDADOR")
+  status       String @default("ATIVO")
+  ultimoAcesso DateTime?
+  criadoEm     DateTime   @default(now())
+  atualizadoEm DateTime   @updatedAt
+
+  auditorias ErpAuditoria[]
+}
+
+model ErpCategoriaFinanceira {
+  id           Int          @id @default(autoincrement())
+  nome         String
+  tipo         String
+  descricao    String?
+  ativo        Boolean      @default(true)
+  criadoEm     DateTime     @default(now())
+  atualizadoEm DateTime     @updatedAt
+
+  lancamentos   ErpLancamentoFinanceiro[]
+  contasPagar   ErpContaPagar[]
+  contasReceber ErpContaReceber[]
+}
+
+model ErpLancamentoFinanceiro {
+  id              Int             @id @default(autoincrement())
+  empresaId       Int
+  tipo            String
+  categoriaId     Int
+  descricao       String
+  valorBruto      Decimal
+  valorTaxas      Decimal         @default(0)
+  valorLiquido    Decimal
+  moeda           String          @default("BRL")
+  cotacao         Decimal?
+  dataCompetencia DateTime
+  dataVencimento  DateTime?
+  dataPagamento   DateTime?
+  status          String @default("PENDENTE")
+  formaPagamento  String?
+  origem          String          @default("manual")
+  referenciaTipo  String?
+  referenciaId    Int?
+  observacoes     String?
+  criadoEm        DateTime        @default(now())
+  atualizadoEm    DateTime        @updatedAt
+  excluidoEm      DateTime?
+
+  empresa   ErpEmpresa              @relation(fields: [empresaId], references: [id])
+  categoria ErpCategoriaFinanceira  @relation(fields: [categoriaId], references: [id])
+}
+
+model ErpContaPagar {
+  id                  Int             @id @default(autoincrement())
+  empresaId           Int
+  categoriaId         Int
+  servicoContratadoId Int?
+  descricao           String
+  fornecedor          String?
+  valorPrevisto       Decimal
+  valorPago           Decimal?
+  moeda               String          @default("BRL")
+  dataVencimento      DateTime
+  dataPagamento       DateTime?
+  recorrente          Boolean         @default(false)
+  periodicidade       String?
+  status              String @default("PENDENTE")
+  formaPagamento      String?
+  observacoes         String?
+  criadoEm            DateTime        @default(now())
+  atualizadoEm        DateTime        @updatedAt
+
+  empresa           ErpEmpresa             @relation(fields: [empresaId], references: [id])
+  categoria         ErpCategoriaFinanceira @relation(fields: [categoriaId], references: [id])
+  servicoContratado ErpServicoContratado?  @relation(fields: [servicoContratadoId], references: [id])
+}
+
+model ErpContaReceber {
+  id                Int             @id @default(autoincrement())
+  empresaId         Int
+  categoriaId       Int
+  clienteId         Int?
+  prestadorId       Int?
+  assinaturaId      Int?
+  descricao         String
+  origem            String          @default("manual")
+  valorPrevisto     Decimal
+  valorRecebido     Decimal?
+  valorTaxas        Decimal         @default(0)
+  valorLiquido      Decimal?
+  dataVencimento    DateTime
+  dataRecebimento   DateTime?
+  status            String @default("PENDENTE")
+  formaPagamento    String?
+  gateway           String?
+  gatewayReferencia String?
+  observacoes       String?
+  criadoEm          DateTime        @default(now())
+  atualizadoEm      DateTime        @updatedAt
+
+  empresa    ErpEmpresa              @relation(fields: [empresaId], references: [id])
+  categoria  ErpCategoriaFinanceira  @relation(fields: [categoriaId], references: [id])
+  cliente    MarketplaceCliente?     @relation(fields: [clienteId], references: [id])
+  prestador  MarketplacePrestador?   @relation(fields: [prestadorId], references: [id])
+  assinatura MarketplaceAssinatura?  @relation(fields: [assinaturaId], references: [id])
+}
+
+model ErpServicoContratado {
+  id                         Int       @id @default(autoincrement())
+  empresaId                  Int
+  nome                       String
+  fornecedor                 String
+  categoria                  String
+  descricao                  String?
+  ambiente                   String    @default("producao")
+  criticidade                String  @default("MEDIA")
+  status                     String    @default("ativo")
+  urlPainel                  String?
+  urlSuporte                 String?
+  plano                      String?
+  moeda                      String    @default("BRL")
+  valorEstimado              Decimal?
+  valorUltimaCobranca        Decimal?
+  periodicidade              String?
+  dataInicio                 DateTime?
+  dataRenovacao              DateTime?
+  dataCancelamento           DateTime?
+  metodoPagamento            String?
+  responsavelInterno         String?
+  possuiCredenciais          Boolean   @default(false)
+  localCredenciais           String?
+  ultimaRotacaoCredenciais   DateTime?
+  observacoes                String?
+  criadoEm                   DateTime  @default(now())
+  atualizadoEm               DateTime  @updatedAt
+  excluidoEm                 DateTime?
+
+  empresa     ErpEmpresa       @relation(fields: [empresaId], references: [id])
+  contasPagar ErpContaPagar[]
+}
+
+model ErpObrigacaoFiscal {
+  id             Int             @id @default(autoincrement())
+  empresaId      Int
+  tipo           String
+  ano            Int
+  mes            Int?
+  descricao      String?
+  valor          Decimal?
+  dataVencimento DateTime
+  dataPagamento  DateTime?
+  status         String @default("PENDENTE")
+  observacoes    String?
+  criadoEm       DateTime        @default(now())
+  atualizadoEm   DateTime        @updatedAt
+
+  empresa ErpEmpresa @relation(fields: [empresaId], references: [id])
+}
+
+model ErpNotaFiscal {
+  id               Int      @id @default(autoincrement())
+  empresaId        Int
+  numero           String
+  serie            String?
+  dataEmissao      DateTime
+  dataCompetencia  DateTime
+  tomadorNome      String
+  tomadorDocumento String?
+  descricaoServico String
+  valorBruto       Decimal
+  status           String   @default("emitida")
+  linkExterno      String?
+  observacoes      String?
+  criadoEm         DateTime @default(now())
+  atualizadoEm     DateTime @updatedAt
+
+  empresa ErpEmpresa @relation(fields: [empresaId], references: [id])
+}
+
+model MarketplaceCliente {
+  id       Int      @id @default(autoincrement())
+  nome     String
+  email    String
+  telefone String?
+  cidade   String?
+  estado   String?
+  status   String   @default("ativo")
+  criadoEm DateTime @default(now())
+
+  contasReceber ErpContaReceber[]
+}
+
+model MarketplacePrestador {
+  id               Int      @id @default(autoincrement())
+  nome             String
+  tipoPrestador    String
+  email            String
+  cidade           String?
+  estado           String?
+  statusCadastro   String   @default("pendente")
+  statusAssinatura String   @default("sem_assinatura")
+  documentosStatus String   @default("pendente")
+  avaliacaoMedia   Decimal?
+  criadoEm         DateTime @default(now())
+
+  contasReceber ErpContaReceber[]
+  assinaturas   MarketplaceAssinatura[]
+}
+
+model MarketplaceAssinatura {
+  id              Int      @id @default(autoincrement())
+  prestadorId     Int
+  plano           String
+  status          String   @default("ativa")
+  valor           Decimal
+  gateway         String   @default("Asaas")
+  vencimento      DateTime
+  ultimoPagamento DateTime?
+  proximaCobranca DateTime?
+  observacoes     String?
+  atualizadoEm    DateTime @updatedAt
+
+  prestador     MarketplacePrestador @relation(fields: [prestadorId], references: [id])
+  contasReceber ErpContaReceber[]
+}
+
+model ErpChamado {
+  id             Int      @id @default(autoincrement())
+  titulo         String
+  descricao      String
+  tipo           String
+  prioridade     String @default("MEDIA")
+  status         String   @default("aberto")
+  usuarioId      Int?
+  prestadorId    Int?
+  assinaturaId   Int?
+  responsavelId  Int?
+  modulo         String?
+  dataAbertura   DateTime @default(now())
+  dataFechamento DateTime?
+  solucao        String?
+  criadoEm       DateTime @default(now())
+  atualizadoEm   DateTime @updatedAt
+
+  interacoes ErpChamadoInteracao[]
+}
+
+model ErpChamadoInteracao {
+  id        Int      @id @default(autoincrement())
+  chamadoId Int
+  autorId   Int?
+  tipoAutor String   @default("interno")
+  mensagem  String
+  interno   Boolean  @default(true)
+  criadoEm  DateTime @default(now())
+
+  chamado ErpChamado @relation(fields: [chamadoId], references: [id])
+}
+
+model ErpTarefa {
+  id                  Int        @id @default(autoincrement())
+  titulo              String
+  descricao           String?
+  tipo                String
+  prioridade          String   @default("MEDIA")
+  status              String @default("PENDENTE")
+  modulo              String?
+  responsavelId       Int?
+  dataLimite          DateTime?
+  dataConclusao       DateTime?
+  chamadoId           Int?
+  servicoContratadoId Int?
+  origem              String?
+  criadoEm            DateTime   @default(now())
+  atualizadoEm        DateTime   @updatedAt
+}
+
+model ErpAnexo {
+  id             Int      @id @default(autoincrement())
+  nomeOriginal   String
+  nomeArmazenado String
+  bucket         String
+  objectKey      String
+  mimeType       String
+  tamanhoBytes   Int
+  publico        Boolean  @default(false)
+  referenciaTipo String?
+  referenciaId   Int?
+  criadoPor      Int?
+  criadoEm       DateTime @default(now())
+  excluidoEm     DateTime?
+}
+
+model ErpAuditoria {
+  id              Int      @id @default(autoincrement())
+  usuarioId       Int?
+  acao            String
+  entidadeTipo    String
+  entidadeId      Int?
+  dadosAnteriores String?
+  dadosNovos      String?
+  motivo          String?
+  resultado       String   @default("sucesso")
+  ip              String?
+  userAgent       String?
+  criadoEm        DateTime @default(now())
+
+  usuario ErpUsuarioInterno? @relation(fields: [usuarioId], references: [id])
+}

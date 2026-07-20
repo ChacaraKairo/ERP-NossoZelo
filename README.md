@@ -100,6 +100,82 @@ A decisão preferencial é manter separação lógica clara:
 - controlador/admin: operação do marketplace;
 - ERP: gestão da empresa.
 
-## Status
+## Implementação atual
 
-Documentação inicial em construção.
+O MVP web administrativo foi iniciado a partir da documentação do projeto.
+
+Inclui:
+
+- client web em Next.js, React e TypeScript;
+- API separada em NestJS;
+- PostgreSQL como banco de dados;
+- Prisma Client com schema do ERP;
+- Docker Compose para Postgres local;
+- seed inicial de empresa, usuário fundador, categorias financeiras, serviços contratados e dados piloto do marketplace;
+- login administrativo;
+- layout administrativo com menu lateral;
+- dashboard;
+- financeiro, lançamentos, contas a pagar e contas a receber;
+- serviços contratados e registro de cobrança;
+- Fiscal/MEI e notas fiscais manuais;
+- marketplace: clientes, prestadores e assinaturas;
+- suporte/chamados;
+- tarefas internas;
+- relatórios básicos;
+- auditoria;
+- configurações;
+- health check da API em `http://localhost:3001/api/health`.
+
+## Como rodar localmente
+
+```bash
+npm install
+cp .env.example .env
+npm run db:up
+npm run db:generate
+npm run db:push
+npm run db:seed
+npm run dev:api
+npm run dev:web
+```
+
+Acesse:
+
+```text
+http://localhost:3000
+```
+
+Login inicial:
+
+```text
+E-mail: admin@nossozelo.com.br
+Senha: admin123
+```
+
+Troque essa senha antes de qualquer uso real.
+
+## Scripts principais
+
+```bash
+npm run dev
+npm run dev:web
+npm run dev:api
+npm run dev:all
+npm run lint
+npm run build
+npm run typecheck
+npm run db:generate
+npm run db:up
+npm run db:push
+npm run db:seed
+```
+
+Arquitetura local:
+
+```text
+Next client: http://localhost:3000
+Nest API:    http://localhost:3001/api
+PostgreSQL:  localhost:5432
+```
+
+Para produção, configure `DATABASE_URL`, `APP_URL`, `API_URL` e `NEXT_PUBLIC_API_URL` no provedor escolhido. O Postgres local usa as credenciais do `docker-compose.yml`.
