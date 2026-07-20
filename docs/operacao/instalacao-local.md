@@ -19,6 +19,12 @@ npm run dev:api
 npm run dev:web
 ```
 
+Para fazer tudo em uma única passada e limpar servidores antigos nas portas 3000/3001:
+
+```bash
+npm run dev:fresh
+```
+
 ## URLs
 
 ```text

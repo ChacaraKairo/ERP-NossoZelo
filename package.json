@@ -12,6 +12,8 @@
     "dev:web": "next dev",
     "dev:api": "npm run build:api && node dist-api/apps/api/src/main.js",
     "dev:all": "concurrently \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:stop": "node scripts/stop-dev-servers.mjs",
+    "dev:fresh": "npm run dev:stop && npm run db:up && npm run db:push && npm run db:seed && npm run dev:all",
     "build": "prisma generate && npm run build:api && next build",
     "build:web": "next build",
     "build:api": "node scripts/clean-api-build.mjs && tsc -p apps/api/tsconfig.json && node scripts/write-api-package.mjs",

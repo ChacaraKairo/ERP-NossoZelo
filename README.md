@@ -172,6 +172,8 @@ npm run dev
 npm run dev:web
 npm run dev:api
 npm run dev:all
+npm run dev:fresh
+npm run dev:stop
 npm run lint
 npm run build
 npm run typecheck
@@ -199,3 +201,9 @@ PostgreSQL:  localhost:5432
 ```
 
 Para produção, configure `DATABASE_URL`, `APP_URL`, `API_URL` e `NEXT_PUBLIC_API_URL` no provedor escolhido. O Postgres local usa as credenciais do `docker-compose.yml`.
+
+Para iniciar tudo em uma única passada, encerrando servidores antigos nas portas 3000/3001 antes de subir:
+
+```bash
+npm run dev:fresh
+```
