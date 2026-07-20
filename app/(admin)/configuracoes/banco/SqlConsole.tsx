@@ -1,6 +1,6 @@
 "use client";
 
-import { Play, ShieldAlert } from "lucide-react";
+import { Download, Play, ShieldAlert } from "lucide-react";
 import { useState } from "react";
 import { publicApiUrl } from "@/lib/api-url";
 
@@ -18,6 +18,7 @@ export function SqlConsole() {
   const [result, setResult] = useState<SqlResult | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const isWrite = /^(insert|update|delete)\b/i.test(sql.trim());
 
   async function execute(event: React.FormEvent<HTMLFormElement>) {
@@ -40,6 +41,32 @@ export function SqlConsole() {
     setResult(data);
   }
 
+  async function downloadPdf() {
+    setDownloading(true);
+    setError("");
+    const response = await fetch(`${publicApiUrl}/api/database/sql/pdf`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ sql }),
+    });
+    setDownloading(false);
+    if (!response.ok) {
+      const data = await response.json();
+      setError(data.message ?? "Não foi possível gerar o PDF.");
+      return;
+    }
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `resultado-sql-${new Date().toISOString().slice(0, 10)}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="grid">
       <form className="card sql-console" onSubmit={execute}>
@@ -58,9 +85,16 @@ export function SqlConsole() {
           </div>
         ) : null}
         {error ? <p className="badge danger">{error}</p> : null}
-        <button className="button" type="submit" disabled={loading}>
-          <Play size={17} /> {loading ? "Executando..." : "Executar SQL"}
-        </button>
+        <div className="actions-row">
+          <button className="button" type="submit" disabled={loading}>
+            <Play size={17} /> {loading ? "Executando..." : "Executar SQL"}
+          </button>
+          {!isWrite ? (
+            <button className="button secondary" type="button" onClick={downloadPdf} disabled={downloading}>
+              <Download size={17} /> {downloading ? "Gerando..." : "Baixar PDF"}
+            </button>
+          ) : null}
+        </div>
       </form>
       {result ? (
         <div className="card">

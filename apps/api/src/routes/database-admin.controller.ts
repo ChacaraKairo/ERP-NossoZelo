@@ -1,4 +1,5 @@
-import { Body, Controller, Post, Req } from "@nestjs/common";
+import { Body, Controller, HttpCode, Post, Req, Res } from "@nestjs/common";
+import type { Response } from "express";
 import { RequirePermission } from "../common/decorators/require-permission.decorator";
 import type { RequestWithContext } from "../common/types/request-user";
 import { AuditService } from "../services/audit.service";
@@ -36,5 +37,29 @@ export class DatabaseAdminController {
       severidade: result.mode === "write" ? "WARN" : "INFO",
     });
     return result;
+  }
+
+  @Post("sql/pdf")
+  @HttpCode(200)
+  @RequirePermission("database:write")
+  async exportSqlPdf(@Body() body: { sql?: string }, @Req() request: RequestWithContext, @Res() response: Response) {
+    const buffer = await this.database.pdf(String(body.sql ?? ""), request.user);
+    await this.audit.create({
+      usuarioId: request.user?.id,
+      acao: "exportar_sql_pdf",
+      modulo: "database",
+      entidadeTipo: "database",
+      metodoHttp: request.method,
+      rota: request.path,
+      dadosNovos: { sqlPreview: String(body.sql ?? "").slice(0, 500) },
+      requestId: request.requestId,
+      sessionId: request.session?.id,
+      deviceId: request.session?.deviceId,
+      ip: request.ip,
+      userAgent: request.get("user-agent"),
+    });
+    response.setHeader("Content-Type", "application/pdf");
+    response.setHeader("Content-Disposition", `attachment; filename="resultado-sql-${new Date().toISOString().slice(0, 10)}.pdf"`);
+    response.send(buffer);
   }
 }
