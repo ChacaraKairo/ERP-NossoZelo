@@ -20,6 +20,7 @@
 - [x] Categorias financeiras filtradas por receita/despesa nos formulários.
 - [x] Endpoint de alertas calculados.
 - [x] Fechamento mensal com resumo, pendências e registro auditável.
+- [x] PDFs estilizados para relatórios P0.
 - [x] Exportação manual de dados em JSON.
 - [x] Exportação financeira em CSV.
 - [x] Registro visual do último backup manual.
