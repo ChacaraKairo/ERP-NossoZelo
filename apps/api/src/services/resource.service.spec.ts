@@ -48,4 +48,40 @@ describe("ResourceService", () => {
       }),
     );
   });
+
+  it("generates one payable account from fixed monthly expense", async () => {
+    const prisma = {
+      erpGastoFixo: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 7,
+          empresaId: 1,
+          categoriaId: 2,
+          descricao: "Contador",
+          fornecedor: "Escritório",
+          valorPrevisto: 250,
+          moeda: "BRL",
+          diaVencimento: 10,
+          ativo: true,
+          excluidoEm: null,
+          formaPagamento: "pix",
+          observacoes: "Obrigatório",
+        }),
+      },
+      erpContaPagar: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockResolvedValue({ id: 20, gastoFixoId: 7, status: "PENDENTE" }),
+      },
+    };
+    const service = new ResourceService(prisma as never);
+
+    const result = await service.generateContaPagarFromGastoFixo(7, "2026-07");
+
+    expect(result.created).toBe(true);
+    expect(result.current).toEqual({ id: 20, gastoFixoId: 7, status: "PENDENTE" });
+    expect(prisma.erpContaPagar.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ gastoFixoId: 7, recorrente: true, dataVencimento: new Date(2026, 6, 10) }),
+      }),
+    );
+  });
 });

@@ -9,7 +9,16 @@ export default async function ContasPagarPage() {
   const rows = await apiGet<any[]>("/erp/contasPagar");
   return (
     <>
-      <PageHeader title="Contas a pagar" description="Despesas futuras, recorrentes e vencimentos." action={<Link className="button" href="/financeiro/contas-a-pagar/nova"><Plus size={17} /> Nova</Link>} />
+      <PageHeader
+        title="Contas a pagar"
+        description="Despesas futuras, recorrentes e vencimentos."
+        action={
+          <div className="actions-row">
+            <Link className="button secondary" href="/financeiro/gastos-fixos">Gastos fixos</Link>
+            <Link className="button" href="/financeiro/contas-a-pagar/nova"><Plus size={17} /> Nova</Link>
+          </div>
+        }
+      />
       <DataTable columns={columns.contasPagar} rows={rows} />
     </>
   );

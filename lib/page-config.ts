@@ -32,7 +32,12 @@ export function categoryOptions(categories: { id: number; nome: string; tipo: st
   return categories.map((category) => ({
     label: `${category.nome} · ${category.tipo.toLowerCase()}`,
     value: category.id,
+    tipo: category.tipo,
   }));
+}
+
+export function categoriesForTipo(categories: { id: number; nome: string; tipo: string }[], tipo: "RECEITA" | "DESPESA") {
+  return categories.filter((category) => category.tipo === tipo || category.tipo === "AMBOS");
 }
 
 export const columns = {
@@ -55,6 +60,15 @@ export const columns = {
     { key: "periodicidade", label: "Recorrência" },
     { key: "status", label: "Status", type: "status" },
     { key: "servicoContratado", label: "Serviço", render: (row: any) => row.servicoContratado?.nome ?? "-" },
+  ],
+  gastosFixos: [
+    { key: "descricao", label: "Descrição" },
+    { key: "fornecedor", label: "Fornecedor" },
+    { key: "categoria", label: "Categoria", render: (row: any) => row.categoria?.nome ?? "-" },
+    { key: "valorPrevisto", label: "Valor mensal", type: "money" },
+    { key: "diaVencimento", label: "Dia venc." },
+    { key: "obrigatorio", label: "Obrigatório", render: (row: any) => (row.obrigatorio ? "Sim" : "Não") },
+    { key: "ativo", label: "Status", render: (row: any) => (row.ativo ? "ativo" : "inativo") },
   ],
   contasReceber: [
     { key: "descricao", label: "Descrição" },

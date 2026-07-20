@@ -30,6 +30,7 @@ model ErpEmpresa {
   fornecedores  ErpFornecedor[]
   fechamentos   ErpFechamentoMensal[]
   backups       ErpBackupRegistro[]
+  gastosFixos   ErpGastoFixo[]
 }
 
 model ErpUsuarioInterno {
@@ -79,6 +80,7 @@ model ErpCategoriaFinanceira {
   lancamentos   ErpLancamentoFinanceiro[]
   contasPagar   ErpContaPagar[]
   contasReceber ErpContaReceber[]
+  gastosFixos   ErpGastoFixo[]
 }
 
 model ErpLancamentoFinanceiro {
@@ -114,6 +116,7 @@ model ErpContaPagar {
   empresaId           Int
   categoriaId         Int
   servicoContratadoId Int?
+  gastoFixoId         Int?
   descricao           String
   fornecedor          String?
   valorPrevisto       Decimal
@@ -133,6 +136,32 @@ model ErpContaPagar {
   empresa           ErpEmpresa             @relation(fields: [empresaId], references: [id])
   categoria         ErpCategoriaFinanceira @relation(fields: [categoriaId], references: [id])
   servicoContratado ErpServicoContratado?  @relation(fields: [servicoContratadoId], references: [id])
+  gastoFixo         ErpGastoFixo?          @relation(fields: [gastoFixoId], references: [id])
+}
+
+model ErpGastoFixo {
+  id             Int      @id @default(autoincrement())
+  empresaId      Int
+  categoriaId    Int
+  descricao      String
+  fornecedor     String?
+  valorPrevisto  Decimal
+  moeda          String   @default("BRL")
+  diaVencimento  Int
+  obrigatorio    Boolean  @default(true)
+  ativo          Boolean  @default(true)
+  formaPagamento String?
+  observacoes    String?
+  criadoEm       DateTime @default(now())
+  atualizadoEm   DateTime @updatedAt
+  excluidoEm     DateTime?
+
+  empresa     ErpEmpresa             @relation(fields: [empresaId], references: [id])
+  categoria   ErpCategoriaFinanceira @relation(fields: [categoriaId], references: [id])
+  contasPagar ErpContaPagar[]
+
+  @@index([empresaId, ativo])
+  @@index([categoriaId])
 }
 
 model ErpContaReceber {

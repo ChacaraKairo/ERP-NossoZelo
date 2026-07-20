@@ -1,7 +1,7 @@
 import { FormPage } from "@/components/FormPage";
 import { PageHeader } from "@/components/PageHeader";
 import { apiGet } from "@/lib/api";
-import { categoryOptions, financialStatusOptions } from "@/lib/page-config";
+import { categoriesForTipo, categoryOptions, financialStatusOptions } from "@/lib/page-config";
 
 export default async function NovaCobrancaServicoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -9,7 +9,7 @@ export default async function NovaCobrancaServicoPage({ params }: { params: Prom
     apiGet<any>(`/erp/servicos/${id}`),
     apiGet<any[]>("/erp/categorias"),
   ]);
-  const activeCategories = categories.filter((category) => category.ativo);
+  const activeCategories = categoriesForTipo(categories.filter((category) => category.ativo), "DESPESA");
   return (
     <>
       <PageHeader title="Registrar cobrança" description={servico ? `Gerar conta a pagar para ${servico.nome}.` : "Gerar conta a pagar."} />

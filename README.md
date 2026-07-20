@@ -124,6 +124,7 @@ Inclui:
 - layout administrativo com menu lateral;
 - dashboard;
 - financeiro, lançamentos, contas a pagar e contas a receber;
+- gastos fixos mensais obrigatórios com geração de conta a pagar;
 - serviços contratados e registro de cobrança;
 - Fiscal/MEI e notas fiscais manuais;
 - marketplace: clientes, prestadores e assinaturas;

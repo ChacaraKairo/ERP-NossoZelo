@@ -16,6 +16,8 @@
 - [x] Soft delete nos registros críticos.
 - [x] Conta paga gera lançamento financeiro.
 - [x] Conta recebida gera lançamento financeiro.
+- [x] Gastos fixos mensais obrigatórios geram contas a pagar.
+- [x] Categorias financeiras filtradas por receita/despesa nos formulários.
 - [x] Endpoint de alertas calculados.
 - [x] Fechamento mensal com resumo, pendências e registro auditável.
 - [x] Exportação manual de dados em JSON.

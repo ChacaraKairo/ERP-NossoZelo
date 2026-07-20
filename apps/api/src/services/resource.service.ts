@@ -35,6 +35,7 @@ const schemas = {
   contasPagar: z.object({
     categoriaId: z.coerce.number(),
     servicoContratadoId: z.coerce.number().optional(),
+    gastoFixoId: z.coerce.number().optional(),
     descricao: z.string().min(3),
     fornecedor: z.string().optional(),
     valorPrevisto: positiveDecimalField,
@@ -45,6 +46,18 @@ const schemas = {
     recorrente: z.coerce.boolean().default(false),
     periodicidade: z.string().optional(),
     status: z.enum(["PENDENTE", "PAGO", "RECEBIDO", "VENCIDO", "CANCELADO"]),
+    formaPagamento: z.string().optional(),
+    observacoes: z.string().optional(),
+  }),
+  gastosFixos: z.object({
+    categoriaId: z.coerce.number(),
+    descricao: z.string().min(3),
+    fornecedor: z.string().optional(),
+    valorPrevisto: positiveDecimalField,
+    moeda: z.string().default("BRL"),
+    diaVencimento: z.coerce.number().int().min(1).max(31),
+    obrigatorio: z.coerce.boolean().default(true),
+    ativo: z.coerce.boolean().default(true),
     formaPagamento: z.string().optional(),
     observacoes: z.string().optional(),
   }),
@@ -205,8 +218,14 @@ export class ResourceService {
       case "contasPagar":
         return this.prisma.erpContaPagar.findMany({
           where: { excluidoEm: null, ...(filters.status ? { status: filters.status } : {}), ...(filters.categoriaId ? { categoriaId: Number(filters.categoriaId) } : {}) },
-          include: { categoria: true, servicoContratado: true },
+          include: { categoria: true, servicoContratado: true, gastoFixo: true },
           orderBy: { dataVencimento: "asc" },
+        });
+      case "gastosFixos":
+        return this.prisma.erpGastoFixo.findMany({
+          where: { excluidoEm: null, ...(filters.ativo ? { ativo: filters.ativo === "true" } : {}) },
+          include: { categoria: true },
+          orderBy: [{ ativo: "desc" }, { diaVencimento: "asc" }, { descricao: "asc" }],
         });
       case "contasReceber":
         return this.prisma.erpContaReceber.findMany({
@@ -260,7 +279,9 @@ export class ResourceService {
       case "lancamentos":
         return this.prisma.erpLancamentoFinanceiro.findUnique({ where: { id }, include: { categoria: true } });
       case "contasPagar":
-        return this.prisma.erpContaPagar.findUnique({ where: { id }, include: { categoria: true, servicoContratado: true } });
+        return this.prisma.erpContaPagar.findUnique({ where: { id }, include: { categoria: true, servicoContratado: true, gastoFixo: true } });
+      case "gastosFixos":
+        return this.prisma.erpGastoFixo.findUnique({ where: { id }, include: { categoria: true } });
       case "contasReceber":
         return this.prisma.erpContaReceber.findUnique({ where: { id }, include: { categoria: true, cliente: true, prestador: true, assinatura: true } });
       case "obrigacoes":
@@ -297,6 +318,8 @@ export class ResourceService {
         return this.prisma.erpLancamentoFinanceiro.create({ data: { empresaId, ...data } as never });
       case "contasPagar":
         return this.prisma.erpContaPagar.create({ data: { empresaId, ...data } as never });
+      case "gastosFixos":
+        return this.prisma.erpGastoFixo.create({ data: { empresaId, ...data } as never });
       case "contasReceber":
         return this.prisma.erpContaReceber.create({ data: { empresaId, ...data } as never });
       case "servicos":
@@ -336,6 +359,8 @@ export class ResourceService {
         return { previous, current: await this.prisma.erpLancamentoFinanceiro.update({ where: { id }, data: data as never }) };
       case "contasPagar":
         return { previous, current: await this.prisma.erpContaPagar.update({ where: { id }, data: data as never }) };
+      case "gastosFixos":
+        return { previous, current: await this.prisma.erpGastoFixo.update({ where: { id }, data: data as never }) };
       case "contasReceber":
         return { previous, current: await this.prisma.erpContaReceber.update({ where: { id }, data: data as never }) };
       case "servicos":
@@ -372,6 +397,8 @@ export class ResourceService {
         return { previous, current: await this.prisma.erpLancamentoFinanceiro.update({ where: { id }, data }) };
       case "contasPagar":
         return { previous, current: await this.prisma.erpContaPagar.update({ where: { id }, data }) };
+      case "gastosFixos":
+        return { previous, current: await this.prisma.erpGastoFixo.update({ where: { id }, data }) };
       case "contasReceber":
         return { previous, current: await this.prisma.erpContaReceber.update({ where: { id }, data }) };
       case "servicos":
@@ -459,6 +486,45 @@ export class ResourceService {
     return { previous, current };
   }
 
+  async generateContaPagarFromGastoFixo(id: number, mes?: string) {
+    const gasto = await this.prisma.erpGastoFixo.findUnique({ where: { id }, include: { categoria: true } });
+    if (!gasto || gasto.excluidoEm) throw new NotFoundException("Gasto fixo inexistente");
+    if (!gasto.ativo) throw new BadRequestException("Gasto fixo inativo não pode gerar conta");
+
+    const periodo = this.monthPeriod(mes);
+    const vencimento = new Date(periodo.year, periodo.month - 1, Math.min(gasto.diaVencimento, this.daysInMonth(periodo.year, periodo.month)));
+    const existing = await this.prisma.erpContaPagar.findFirst({
+      where: {
+        gastoFixoId: id,
+        excluidoEm: null,
+        dataVencimento: { gte: periodo.start, lt: periodo.end },
+      },
+      include: { categoria: true, servicoContratado: true, gastoFixo: true },
+    });
+    if (existing) return { previous: gasto, current: existing, created: false };
+
+    const current = await this.prisma.erpContaPagar.create({
+      data: {
+        empresaId: gasto.empresaId,
+        categoriaId: gasto.categoriaId,
+        gastoFixoId: gasto.id,
+        descricao: gasto.descricao,
+        fornecedor: gasto.fornecedor,
+        valorPrevisto: gasto.valorPrevisto,
+        moeda: gasto.moeda,
+        dataVencimento: vencimento,
+        recorrente: true,
+        periodicidade: "mensal",
+        status: "PENDENTE",
+        formaPagamento: gasto.formaPagamento,
+        observacoes: gasto.observacoes,
+      },
+      include: { categoria: true, servicoContratado: true, gastoFixo: true },
+    });
+
+    return { previous: gasto, current, created: true };
+  }
+
   private normalize(body: unknown) {
     if (!body || typeof body !== "object") return body;
     return Object.fromEntries(
@@ -490,5 +556,22 @@ export class ResourceService {
       gte: new Date(year, month - 1, 1),
       lt: new Date(year, month, 1),
     };
+  }
+
+  private monthPeriod(mes?: string) {
+    const value = mes ?? new Date().toISOString().slice(0, 7);
+    if (!/^\d{4}-\d{2}$/.test(value)) throw new BadRequestException("Mês inválido. Use YYYY-MM.");
+    const [year, month] = value.split("-").map(Number);
+    if (!year || month < 1 || month > 12) throw new BadRequestException("Mês inválido. Use YYYY-MM.");
+    return {
+      year,
+      month,
+      start: new Date(year, month - 1, 1),
+      end: new Date(year, month, 1),
+    };
+  }
+
+  private daysInMonth(year: number, month: number) {
+    return new Date(year, month, 0).getDate();
   }
 }

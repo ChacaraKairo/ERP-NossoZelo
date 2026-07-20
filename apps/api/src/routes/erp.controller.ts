@@ -4,11 +4,12 @@ import { ResourceService } from "../services/resource.service";
 import { RequirePermission } from "../common/decorators/require-permission.decorator";
 import type { RequestWithContext } from "../common/types/request-user";
 
-const writable = ["lancamentos", "contasPagar", "contasReceber", "servicos", "obrigacoes", "notas", "chamados", "tarefas", "fornecedores", "riscos", "decisoes", "baseConhecimento", "categorias"] as const;
+const writable = ["lancamentos", "contasPagar", "contasReceber", "gastosFixos", "servicos", "obrigacoes", "notas", "chamados", "tarefas", "fornecedores", "riscos", "decisoes", "baseConhecimento", "categorias"] as const;
 const permissionByResource: Record<string, string> = {
   lancamentos: "financeiro",
   categorias: "financeiro",
   contasPagar: "contas_pagar",
+  gastosFixos: "contas_pagar",
   contasReceber: "contas_receber",
   servicos: "servicos",
   fornecedores: "fornecedores",
@@ -152,6 +153,28 @@ export class ErpController {
       modulo: "contas_receber",
       entidadeTipo: "contasReceber",
       entidadeId: Number(id),
+      metodoHttp: request.method,
+      rota: request.path,
+      dadosAnteriores: result.previous,
+      dadosNovos: result.current,
+      requestId: request.requestId,
+      sessionId: request.session?.id,
+      ip: request.ip,
+      userAgent: request.get("user-agent"),
+    });
+    return result.current;
+  }
+
+  @Post("gastosFixos/:id/gerar")
+  @RequirePermission("contas_pagar:create")
+  async gerarContaGastoFixo(@Param("id") id: string, @Query("mes") mes: string | undefined, @Req() request: RequestWithContext) {
+    const result = await this.resources.generateContaPagarFromGastoFixo(Number(id), mes);
+    await this.audit.create({
+      usuarioId: request.user?.id,
+      acao: result.created ? "gerar_conta_gasto_fixo" : "reusar_conta_gasto_fixo",
+      modulo: "contas_pagar",
+      entidadeTipo: "contasPagar",
+      entidadeId: (result.current as { id?: number }).id,
       metodoHttp: request.method,
       rota: request.path,
       dadosAnteriores: result.previous,
