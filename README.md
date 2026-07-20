@@ -112,7 +112,11 @@ Inclui:
 - Prisma Client com schema do ERP;
 - Docker Compose para Postgres local;
 - seed inicial de empresa, usuário fundador, categorias financeiras, serviços contratados e dados piloto do marketplace;
-- login administrativo;
+- login administrativo com sessão segura;
+- cookie `httpOnly` com token aleatório, sem ID puro do usuário;
+- RBAC inicial por perfil;
+- auditoria ampliada com sanitização de dados sensíveis;
+- request ID em toda requisição da API;
 - layout administrativo com menu lateral;
 - dashboard;
 - financeiro, lançamentos, contas a pagar e contas a receber;
@@ -124,6 +128,7 @@ Inclui:
 - relatórios básicos;
 - auditoria;
 - configurações;
+- endpoint de alertas calculados em `http://localhost:3001/api/alertas`;
 - health check da API em `http://localhost:3001/api/health`.
 
 ## Como rodar localmente
@@ -164,11 +169,20 @@ npm run dev:all
 npm run lint
 npm run build
 npm run typecheck
+npm run test
 npm run db:generate
 npm run db:up
 npm run db:push
 npm run db:seed
 ```
+
+Documentação complementar:
+
+- `docs/operacao/instalacao-local.md`
+- `docs/operacao/checklist-mvp-real.md`
+- `docs/seguranca/auditoria.md`
+- `docs/seguranca/permissoes.md`
+- `docs/electron/00-plano-electron.md`
 
 Arquitetura local:
 

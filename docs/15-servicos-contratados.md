@@ -26,7 +26,7 @@ Sem esse controle, a empresa pode:
 
 - Render;
 - Vercel;
-- Railway ou banco MySQL gerenciado;
+- Railway ou banco PostgreSQL gerenciado;
 - AWS;
 - AWS S3;
 - AWS IAM;
@@ -289,7 +289,7 @@ Relatórios mínimos:
 | Vercel Client | hospedagem | produção | alta | frontend público |
 | Vercel Admin/ERP | hospedagem | produção | alta | painel interno |
 | Render Backend | hospedagem | produção | crítica | API principal |
-| Railway MySQL | banco de dados | produção | crítica | banco principal |
+| Railway PostgreSQL | banco de dados | produção | crítica | banco principal |
 | AWS S3 | armazenamento | produção | alta | imagens e documentos |
 | AWS IAM | segurança | produção | alta | permissões S3 |
 | Upstash | infraestrutura | produção | média | rate limit |

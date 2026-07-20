@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: erp_nossozelo
+          POSTGRES_USER: erp_nossozelo
+          POSTGRES_PASSWORD: erp_nossozelo
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U erp_nossozelo -d erp_nossozelo"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://erp_nossozelo:erp_nossozelo@localhost:5432/erp_nossozelo?schema=public
+      JWT_SECRET: ci-secret
+      APP_URL: http://localhost:3000
+      API_URL: http://localhost:3001
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npm run db:push
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm run test
