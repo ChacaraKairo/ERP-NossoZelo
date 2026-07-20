@@ -32,7 +32,7 @@ export class AuthController {
       maxAge: 8 * 60 * 60 * 1000,
     });
 
-    const acceptsHtml = request.accepts("html") && !request.accepts("json");
+    const acceptsHtml = this.wantsHtml(request);
     if (acceptsHtml) {
       return response.redirect(303, `${process.env.APP_URL ?? "http://localhost:3000"}/dashboard`);
     }
@@ -57,11 +57,17 @@ export class AuthController {
     });
     response.clearCookie(sessionCookie, { path: "/" });
 
-    const acceptsHtml = request.accepts("html") && !request.accepts("json");
+    const acceptsHtml = this.wantsHtml(request);
     if (acceptsHtml) {
       return response.redirect(303, `${process.env.APP_URL ?? "http://localhost:3000"}/login`);
     }
 
     return response.json({ ok: true });
+  }
+
+  private wantsHtml(request: RequestWithContext) {
+    const accept = request.get("accept") ?? "";
+    const contentType = request.get("content-type") ?? "";
+    return accept.includes("text/html") || contentType.includes("application/x-www-form-urlencoded");
   }
 }
