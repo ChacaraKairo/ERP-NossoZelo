@@ -3,6 +3,7 @@ import {
   BarChart3,
   BriefcaseBusiness,
   ClipboardList,
+  Database,
   DatabaseBackup,
   FileText,
   Gauge,
@@ -38,6 +39,7 @@ const nav = [
     { href: "/fechamento", label: "Fechamento", icon: SquareCheckBig },
     { href: "/backup", label: "Backup", icon: DatabaseBackup },
     { href: "/auditoria", label: "Auditoria", icon: Gauge },
+    { href: "/configuracoes/banco", label: "Banco", icon: Database },
     { href: "/configuracoes", label: "Configurações", icon: Settings },
   ] },
 ];

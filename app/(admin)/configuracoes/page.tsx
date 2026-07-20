@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { DataTable } from "@/components/DataTable";
 import { PageHeader } from "@/components/PageHeader";
 import { apiGet } from "@/lib/api";
@@ -24,6 +25,7 @@ export default async function ConfiguracoesPage() {
           <h2>Segurança</h2>
           <p>Perfis previstos: fundador, financeiro, operação, suporte e leitura.</p>
           <p className="muted">Segredos devem ficar em variáveis de ambiente ou gerenciador de senhas.</p>
+          <Link className="button secondary" href="/configuracoes/banco">Banco de dados</Link>
         </div>
       </div>
       <h2>Usuários internos</h2>

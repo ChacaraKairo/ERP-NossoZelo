@@ -8,6 +8,7 @@ import { AlertasController } from "../routes/alertas.controller";
 import { ExportacoesController } from "../routes/exportacoes.controller";
 import { FechamentoController } from "../routes/fechamento.controller";
 import { RelatoriosController } from "../routes/relatorios.controller";
+import { DatabaseAdminController } from "../routes/database-admin.controller";
 import { PrismaService } from "../services/prisma.service";
 import { AuditService } from "../services/audit.service";
 import { ResourceService } from "../services/resource.service";
@@ -18,9 +19,10 @@ import { AlertasService } from "../services/alertas.service";
 import { ExportacoesService } from "../services/exportacoes.service";
 import { FechamentoService } from "../services/fechamento.service";
 import { RelatoriosService } from "../services/relatorios.service";
+import { DatabaseAdminService } from "../services/database-admin.service";
 
 @Module({
-  controllers: [AuthController, DashboardController, ErpController, HealthController, AlertasController, FechamentoController, ExportacoesController, RelatoriosController],
+  controllers: [AuthController, DashboardController, ErpController, HealthController, AlertasController, FechamentoController, ExportacoesController, RelatoriosController, DatabaseAdminController],
   providers: [
     PrismaService,
     AuditService,
@@ -30,6 +32,7 @@ import { RelatoriosService } from "../services/relatorios.service";
     FechamentoService,
     ExportacoesService,
     RelatoriosService,
+    DatabaseAdminService,
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: PermissionsGuard },
   ],

@@ -2,7 +2,8 @@ import { createHash } from "node:crypto";
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
 import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { homedir } from "node:os";
 import { promisify } from "node:util";
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "./prisma.service";
@@ -108,6 +109,35 @@ export class ExportacoesService {
       }
     }
     return destinos;
+  }
+
+  async navegarPastas(path?: string) {
+    if (!path) {
+      const destinos = await this.destinosBackup();
+      const home = homedir();
+      return {
+        currentPath: "",
+        parentPath: null,
+        folders: [
+          { label: "Pasta pessoal", path: home },
+          ...destinos,
+        ],
+      };
+    }
+
+    const currentPath = resolve(path);
+    if (!existsSync(currentPath) || !(await stat(currentPath)).isDirectory()) {
+      throw new Error(`Pasta não encontrada: ${currentPath}`);
+    }
+
+    const entries = await readdir(currentPath, { withFileTypes: true });
+    const folders = entries
+      .filter((entry) => entry.isDirectory() && !entry.name.startsWith("."))
+      .map((entry) => ({ label: entry.name, path: join(currentPath, entry.name) }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+    const parentPath = dirname(currentPath) === currentPath ? null : dirname(currentPath);
+
+    return { currentPath, parentPath, folders };
   }
 
   async dadosJson() {

@@ -46,6 +46,12 @@ export class ExportacoesController {
     return this.exportacoes.destinosBackup();
   }
 
+  @Get("backup/pastas")
+  @RequirePermission("backup:read")
+  navegarPastas(@Query("path") path?: string) {
+    return this.exportacoes.navegarPastas(path);
+  }
+
   @Post("backup/local")
   @RequirePermission("backup:create")
   async backupLocal(@Body() body: { destino?: string }, @Req() request: RequestWithContext) {

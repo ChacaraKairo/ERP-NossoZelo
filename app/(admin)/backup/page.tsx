@@ -5,6 +5,7 @@ import { apiGet } from "@/lib/api";
 import { publicApiUrl } from "@/lib/api-url";
 import { dateBR } from "@/lib/format";
 import { gerarBackupLocal, registrarBackupManual } from "./actions";
+import { BackupDestinationForm } from "./BackupDestinationForm";
 
 export default async function BackupPage() {
   const [ultimoBackup, destinos] = await Promise.all([
@@ -29,22 +30,7 @@ export default async function BackupPage() {
           <p className="muted">Informe uma pasta montada no notebook. A nova versão é criada primeiro e depois substitui a antiga.</p>
         </div>
       </div>
-      <form className="card" action={gerarBackupLocal}>
-        <div className="form-grid">
-          <div className="field full">
-            <label htmlFor="destino">Pasta de destino</label>
-            <input id="destino" name="destino" list="destinos-backup" placeholder="/run/media/chacara/KING-128G-K" required />
-            <datalist id="destinos-backup">
-              {destinos.map((destino) => (
-                <option value={destino.path} key={destino.path}>{destino.label}</option>
-              ))}
-            </datalist>
-          </div>
-        </div>
-        <button className="button" style={{ marginTop: 18 }} type="submit">
-          <DatabaseBackup size={17} /> Gerar backup completo
-        </button>
-      </form>
+      <BackupDestinationForm destinos={destinos} action={gerarBackupLocal} />
 
       <div className="toolbar" style={{ marginTop: 22 }}>
         <div>
