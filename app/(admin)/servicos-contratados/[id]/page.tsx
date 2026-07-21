@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Pencil } from "lucide-react";
+import { DeleteResourceButton } from "@/components/DeleteResourceButton";
 import { PageHeader } from "@/components/PageHeader";
 import { apiGet } from "@/lib/api";
 import { dateBR, money, statusLabel } from "@/lib/format";
@@ -9,7 +11,17 @@ export default async function ServicoDetalhePage({ params }: { params: Promise<{
   if (!servico) return <PageHeader title="Serviço não encontrado" />;
   return (
     <>
-      <PageHeader title={servico.nome} description={`${servico.fornecedor} · ${servico.categoria}`} action={<Link className="button" href={`/servicos-contratados/${servico.id}/cobrancas/nova`}>Registrar cobrança</Link>} />
+      <PageHeader
+        title={servico.nome}
+        description={`${servico.fornecedor} · ${servico.categoria}`}
+        action={
+          <div className="actions-row">
+            <Link className="button secondary" href={`/servicos-contratados/${servico.id}/editar`}><Pencil size={16} /> Editar</Link>
+            <Link className="button" href={`/servicos-contratados/${servico.id}/cobrancas/nova`}>Registrar cobrança</Link>
+            <DeleteResourceButton resource="servicos" id={servico.id} redirectTo="/servicos-contratados" />
+          </div>
+        }
+      />
       <div className="grid two">
         <div className="card">
           <h2>Dados do serviço</h2>

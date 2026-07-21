@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { publicApiUrl } from "@/lib/api-url";
 
-type Field = {
+export type Field = {
   name: string;
   label: string;
   type?: "text" | "number" | "date" | "textarea" | "select" | "checkbox";
@@ -18,10 +18,14 @@ export function FormPage({
   resource,
   redirectTo,
   fields,
+  method = "POST",
+  resourcePath,
 }: {
   resource: string;
   redirectTo: string;
-  fields: Field[];
+  fields: readonly Field[];
+  method?: "POST" | "PATCH";
+  resourcePath?: string;
 }) {
   const router = useRouter();
   const [error, setError] = useState("");
@@ -41,8 +45,8 @@ export function FormPage({
         field.type === "checkbox" ? formData.get(field.name) === "on" : formData.get(field.name),
       ]),
     );
-    const response = await fetch(`${publicApiUrl}/api/erp/${resource}`, {
-      method: "POST",
+    const response = await fetch(`${publicApiUrl}/api/erp/${resourcePath ?? resource}`, {
+      method,
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify(payload),

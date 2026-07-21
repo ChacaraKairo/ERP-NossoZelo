@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Eye, Pencil, Plus } from "lucide-react";
 import { DataTable } from "@/components/DataTable";
+import { DeleteResourceButton } from "@/components/DeleteResourceButton";
 import { MetricCard } from "@/components/MetricCard";
 import { PageHeader } from "@/components/PageHeader";
 import { apiGet } from "@/lib/api";
@@ -20,7 +21,20 @@ export default async function ServicosPage() {
         <MetricCard label="Com credenciais" value={String(rows.filter((row) => row.possuiCredenciais).length)} />
       </div>
       <div style={{ marginTop: 22 }}>
-        <DataTable columns={columns.servicos} rows={rows} />
+        <DataTable columns={[
+          ...columns.servicos,
+          {
+            key: "acoes",
+            label: "Ações",
+            render: (row: any) => (
+              <div className="actions-row">
+                <Link className="icon-button secondary" title="Ver" aria-label="Ver" href={`/servicos-contratados/${row.id}`}><Eye size={16} /></Link>
+                <Link className="icon-button secondary" title="Editar" aria-label="Editar" href={`/servicos-contratados/${row.id}/editar`}><Pencil size={16} /></Link>
+                <DeleteResourceButton resource="servicos" id={row.id} compact />
+              </div>
+            ),
+          },
+        ]} rows={rows} />
       </div>
     </>
   );

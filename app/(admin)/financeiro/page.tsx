@@ -31,6 +31,7 @@ export default async function FinanceiroPage() {
         <h2>Lançamentos financeiros</h2>
         <div className="actions-row">
           <Link className="button secondary" href="/financeiro/gastos-fixos">Gastos fixos</Link>
+          <Link className="button secondary" href="/financeiro/lancamentos">Ver lançamentos</Link>
           <Link className="button" href="/financeiro/lancamentos/novo"><Plus size={17} /> Novo</Link>
         </div>
       </div>
