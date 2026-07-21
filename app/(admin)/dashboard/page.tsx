@@ -9,7 +9,7 @@ import { apiGet } from "@/lib/api";
 
 export default async function DashboardPage() {
   const dashboard = await apiGet<any>("/dashboard");
-  const { receita, despesas, resultado, assinaturasAtivas, servicosCriticos, obrigacoesPendentes, chamadosAbertos, tarefasAbertas } = dashboard.metrics;
+  const { receita, despesas, resultado, assinaturasAtivas, servicosCriticos, obrigacoesPendentes, chamadosAbertos, tarefasAbertas, riscosCriticos } = dashboard.metrics;
   const { contasPagar, contasReceber } = dashboard.lists;
 
   return (
@@ -18,6 +18,7 @@ export default async function DashboardPage() {
         title="Dashboard"
         description="Saúde financeira, fiscal e operacional da empresa."
         action={<Link className="button" href="/financeiro/lancamentos/novo"><Plus size={17} /> Lançamento</Link>}
+        showBack={false}
       />
       <div className="grid cards">
         <MetricCard label="Receita do mês" value={money(receita)} tone="ok" />
@@ -28,6 +29,7 @@ export default async function DashboardPage() {
         <MetricCard label="Obrigações pendentes" value={String(obrigacoesPendentes)} />
         <MetricCard label="Chamados abertos" value={String(chamadosAbertos)} />
         <MetricCard label="Tarefas em aberto" value={String(tarefasAbertas)} />
+        <MetricCard label="Riscos críticos" value={String(riscosCriticos)} tone={riscosCriticos > 0 ? "danger" : undefined} />
       </div>
       <div className="grid two" style={{ marginTop: 20 }}>
         <section>

@@ -62,7 +62,7 @@ async function main() {
     ["Cloudflare DNS", "Cloudflare", "DNS", "producao", "CRITICA"],
     ["Vercel Admin/ERP", "Vercel", "hospedagem", "producao", "ALTA"],
     ["Render Backend", "Render", "hospedagem", "producao", "CRITICA"],
-    ["Railway MySQL", "Railway", "banco de dados", "producao", "CRITICA"],
+    ["Railway PostgreSQL", "Railway", "banco de dados", "producao", "CRITICA"],
     ["AWS S3", "AWS", "armazenamento", "producao", "ALTA"],
     ["AWS IAM", "AWS", "segurança", "producao", "ALTA"],
     ["Upstash", "Upstash", "infraestrutura", "producao", "MEDIA"],
@@ -71,6 +71,11 @@ async function main() {
     ["UptimeRobot", "UptimeRobot", "monitoramento", "producao", "MEDIA"],
     ["GitHub", "GitHub", "desenvolvimento", "todos", "ALTA"],
   ] as const;
+
+  await prisma.erpServicoContratado.updateMany({
+    where: { fornecedor: "Railway", categoria: "banco de dados" },
+    data: { nome: "Railway PostgreSQL" },
+  });
 
   for (const [nome, fornecedor, categoria, ambiente, criticidade] of servicos) {
     const exists = await prisma.erpServicoContratado.findFirst({ where: { nome } });

@@ -6,6 +6,7 @@ out
 dist
 dist-api
 coverage
+backups/
 *.log
 *.tsbuildinfo
 prisma/dev.db

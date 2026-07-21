@@ -39,8 +39,8 @@ Opções:
 
 ### Banco
 
-- MySQL gerenciado;
-- Railway MySQL ou equivalente;
+- PostgreSQL gerenciado;
+- Railway PostgreSQL ou equivalente;
 - backup obrigatório.
 
 ### Arquivos

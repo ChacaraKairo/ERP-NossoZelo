@@ -15,6 +15,8 @@ Criar um ERP próprio para centralizar a gestão da empresa que opera o NossoZel
 - assinaturas e pagamentos;
 - suporte;
 - tarefas internas;
+- fechamento mensal;
+- backup e exportação manual;
 - auditoria administrativa;
 - relatórios de operação.
 
@@ -49,6 +51,8 @@ O MVP do ERP deve conter:
 - clientes e prestadores;
 - suporte/chamados;
 - tarefas internas;
+- fechamento mensal;
+- backup e exportação manual;
 - auditoria;
 - relatórios básicos.
 
@@ -112,18 +116,26 @@ Inclui:
 - Prisma Client com schema do ERP;
 - Docker Compose para Postgres local;
 - seed inicial de empresa, usuário fundador, categorias financeiras, serviços contratados e dados piloto do marketplace;
-- login administrativo;
+- login administrativo com sessão segura;
+- cookie `httpOnly` com token aleatório, sem ID puro do usuário;
+- RBAC inicial por perfil;
+- auditoria ampliada com sanitização de dados sensíveis;
+- request ID em toda requisição da API;
 - layout administrativo com menu lateral;
 - dashboard;
 - financeiro, lançamentos, contas a pagar e contas a receber;
+- gastos fixos mensais obrigatórios com geração de conta a pagar;
 - serviços contratados e registro de cobrança;
 - Fiscal/MEI e notas fiscais manuais;
 - marketplace: clientes, prestadores e assinaturas;
 - suporte/chamados;
 - tarefas internas;
+- fechamento mensal com resumo, pendências e registro auditável;
+- exportação manual de dados em JSON e financeiro em CSV;
 - relatórios básicos;
 - auditoria;
 - configurações;
+- endpoint de alertas calculados em `http://localhost:3001/api/alertas`;
 - health check da API em `http://localhost:3001/api/health`.
 
 ## Como rodar localmente
@@ -161,14 +173,25 @@ npm run dev
 npm run dev:web
 npm run dev:api
 npm run dev:all
+npm run dev:fresh
+npm run dev:stop
 npm run lint
 npm run build
 npm run typecheck
+npm run test
 npm run db:generate
 npm run db:up
 npm run db:push
 npm run db:seed
 ```
+
+Documentação complementar:
+
+- `docs/operacao/instalacao-local.md`
+- `docs/operacao/checklist-mvp-real.md`
+- `docs/seguranca/auditoria.md`
+- `docs/seguranca/permissoes.md`
+- `docs/electron/00-plano-electron.md`
 
 Arquitetura local:
 
@@ -179,3 +202,9 @@ PostgreSQL:  localhost:5432
 ```
 
 Para produção, configure `DATABASE_URL`, `APP_URL`, `API_URL` e `NEXT_PUBLIC_API_URL` no provedor escolhido. O Postgres local usa as credenciais do `docker-compose.yml`.
+
+Para iniciar tudo em uma única passada, encerrando servidores antigos nas portas 3000/3001 antes de subir:
+
+```bash
+npm run dev:fresh
+```

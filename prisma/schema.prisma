@@ -27,6 +27,10 @@ model ErpEmpresa {
   servicos      ErpServicoContratado[]
   obrigacoes    ErpObrigacaoFiscal[]
   notasFiscais  ErpNotaFiscal[]
+  fornecedores  ErpFornecedor[]
+  fechamentos   ErpFechamentoMensal[]
+  backups       ErpBackupRegistro[]
+  gastosFixos   ErpGastoFixo[]
 }
 
 model ErpUsuarioInterno {
@@ -36,11 +40,32 @@ model ErpUsuarioInterno {
   senhaHash    String
   perfil       String       @default("FUNDADOR")
   status       String @default("ATIVO")
+  deveTrocarSenha Boolean @default(true)
   ultimoAcesso DateTime?
   criadoEm     DateTime   @default(now())
   atualizadoEm DateTime   @updatedAt
 
   auditorias ErpAuditoria[]
+  sessoes     ErpSessao[]
+}
+
+model ErpSessao {
+  id          String    @id @default(uuid())
+  usuarioId   Int
+  tokenHash   String    @unique
+  ip          String?
+  userAgent   String?
+  deviceId    String?
+  expiraEm    DateTime
+  revogadaEm  DateTime?
+  criadoEm    DateTime  @default(now())
+  ultimoUsoEm DateTime?
+
+  usuario ErpUsuarioInterno @relation(fields: [usuarioId], references: [id])
+
+  @@index([usuarioId])
+  @@index([tokenHash])
+  @@index([expiraEm])
 }
 
 model ErpCategoriaFinanceira {
@@ -55,6 +80,7 @@ model ErpCategoriaFinanceira {
   lancamentos   ErpLancamentoFinanceiro[]
   contasPagar   ErpContaPagar[]
   contasReceber ErpContaReceber[]
+  gastosFixos   ErpGastoFixo[]
 }
 
 model ErpLancamentoFinanceiro {
@@ -90,6 +116,7 @@ model ErpContaPagar {
   empresaId           Int
   categoriaId         Int
   servicoContratadoId Int?
+  gastoFixoId         Int?
   descricao           String
   fornecedor          String?
   valorPrevisto       Decimal
@@ -104,10 +131,37 @@ model ErpContaPagar {
   observacoes         String?
   criadoEm            DateTime        @default(now())
   atualizadoEm        DateTime        @updatedAt
+  excluidoEm          DateTime?
 
   empresa           ErpEmpresa             @relation(fields: [empresaId], references: [id])
   categoria         ErpCategoriaFinanceira @relation(fields: [categoriaId], references: [id])
   servicoContratado ErpServicoContratado?  @relation(fields: [servicoContratadoId], references: [id])
+  gastoFixo         ErpGastoFixo?          @relation(fields: [gastoFixoId], references: [id])
+}
+
+model ErpGastoFixo {
+  id             Int      @id @default(autoincrement())
+  empresaId      Int
+  categoriaId    Int
+  descricao      String
+  fornecedor     String?
+  valorPrevisto  Decimal
+  moeda          String   @default("BRL")
+  diaVencimento  Int
+  obrigatorio    Boolean  @default(true)
+  ativo          Boolean  @default(true)
+  formaPagamento String?
+  observacoes    String?
+  criadoEm       DateTime @default(now())
+  atualizadoEm   DateTime @updatedAt
+  excluidoEm     DateTime?
+
+  empresa     ErpEmpresa             @relation(fields: [empresaId], references: [id])
+  categoria   ErpCategoriaFinanceira @relation(fields: [categoriaId], references: [id])
+  contasPagar ErpContaPagar[]
+
+  @@index([empresaId, ativo])
+  @@index([categoriaId])
 }
 
 model ErpContaReceber {
@@ -132,6 +186,7 @@ model ErpContaReceber {
   observacoes       String?
   criadoEm          DateTime        @default(now())
   atualizadoEm      DateTime        @updatedAt
+  excluidoEm        DateTime?
 
   empresa    ErpEmpresa              @relation(fields: [empresaId], references: [id])
   categoria  ErpCategoriaFinanceira  @relation(fields: [categoriaId], references: [id])
@@ -188,6 +243,7 @@ model ErpObrigacaoFiscal {
   observacoes    String?
   criadoEm       DateTime        @default(now())
   atualizadoEm   DateTime        @updatedAt
+  excluidoEm     DateTime?
 
   empresa ErpEmpresa @relation(fields: [empresaId], references: [id])
 }
@@ -208,8 +264,55 @@ model ErpNotaFiscal {
   observacoes      String?
   criadoEm         DateTime @default(now())
   atualizadoEm     DateTime @updatedAt
+  excluidoEm       DateTime?
 
   empresa ErpEmpresa @relation(fields: [empresaId], references: [id])
+}
+
+model ErpFechamentoMensal {
+  id                    Int      @id @default(autoincrement())
+  empresaId             Int
+  ano                   Int
+  mes                   Int
+  status                String   @default("ABERTO")
+  receitaTotal          Decimal  @default(0)
+  despesaTotal          Decimal  @default(0)
+  resultado             Decimal  @default(0)
+  contasPagarAbertas    Int      @default(0)
+  contasReceberAbertas  Int      @default(0)
+  obrigacoesPendentes   Int      @default(0)
+  notasEmitidas         Int      @default(0)
+  servicosPagos         Int      @default(0)
+  problemasAbertos      Int      @default(0)
+  decisoesRegistradas   Int      @default(0)
+  pendenciasProximoMes  Json?
+  resumo                Json
+  fechadoPorId          Int?
+  fechadoEm             DateTime?
+  criadoEm              DateTime @default(now())
+  atualizadoEm          DateTime @updatedAt
+
+  empresa ErpEmpresa @relation(fields: [empresaId], references: [id])
+
+  @@unique([empresaId, ano, mes])
+  @@index([ano, mes])
+  @@index([status])
+}
+
+model ErpBackupRegistro {
+  id             Int      @id @default(autoincrement())
+  empresaId      Int?
+  tipo           String
+  formato        String
+  descricao      String?
+  tamanhoBytes   Int?
+  geradoPorId    Int?
+  criadoEm       DateTime @default(now())
+
+  empresa ErpEmpresa? @relation(fields: [empresaId], references: [id])
+
+  @@index([criadoEm])
+  @@index([tipo])
 }
 
 model MarketplaceCliente {
@@ -276,6 +379,7 @@ model ErpChamado {
   solucao        String?
   criadoEm       DateTime @default(now())
   atualizadoEm   DateTime @updatedAt
+  excluidoEm     DateTime?
 
   interacoes ErpChamadoInteracao[]
 }
@@ -308,6 +412,68 @@ model ErpTarefa {
   origem              String?
   criadoEm            DateTime   @default(now())
   atualizadoEm        DateTime   @updatedAt
+  excluidoEm          DateTime?
+}
+
+model ErpFornecedor {
+  id           Int      @id @default(autoincrement())
+  empresaId    Int
+  nome         String
+  documento    String?
+  email        String?
+  telefone     String?
+  categoria    String?
+  status       String   @default("ativo")
+  observacoes  String?
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  excluidoEm   DateTime?
+
+  empresa ErpEmpresa @relation(fields: [empresaId], references: [id])
+}
+
+model ErpRisco {
+  id           Int      @id @default(autoincrement())
+  titulo       String
+  descricao    String?
+  modulo       String?
+  probabilidade String  @default("MEDIA")
+  impacto      String   @default("MEDIA")
+  severidade   String   @default("MEDIA")
+  status       String   @default("aberto")
+  responsavel  String?
+  mitigacao    String?
+  dataLimite   DateTime?
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  excluidoEm   DateTime?
+}
+
+model ErpDecisao {
+  id           Int      @id @default(autoincrement())
+  titulo       String
+  contexto     String?
+  decisao      String
+  modulo       String?
+  responsavel  String?
+  dataDecisao  DateTime @default(now())
+  consequencias String?
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  excluidoEm   DateTime?
+}
+
+model ErpBaseConhecimento {
+  id           Int      @id @default(autoincrement())
+  titulo       String
+  conteudo     String
+  categoria    String?
+  tags         String?
+  status       String   @default("publicado")
+  criadoPor    Int?
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  excluidoEm   DateTime?
 }
 
 model ErpAnexo {
@@ -328,17 +494,31 @@ model ErpAnexo {
 
 model ErpAuditoria {
   id              Int      @id @default(autoincrement())
+  requestId       String?
+  sessionId       String?
+  deviceId        String?
   usuarioId       Int?
   acao            String
+  modulo          String?
   entidadeTipo    String
   entidadeId      Int?
-  dadosAnteriores String?
-  dadosNovos      String?
+  metodoHttp      String?
+  rota            String?
+  dadosAnteriores Json?
+  dadosNovos      Json?
+  diff            Json?
   motivo          String?
   resultado       String   @default("sucesso")
+  severidade      String   @default("INFO")
   ip              String?
   userAgent       String?
   criadoEm        DateTime @default(now())
 
   usuario ErpUsuarioInterno? @relation(fields: [usuarioId], references: [id])
+
+  @@index([usuarioId])
+  @@index([entidadeTipo, entidadeId])
+  @@index([acao])
+  @@index([criadoEm])
+  @@index([requestId])
 }

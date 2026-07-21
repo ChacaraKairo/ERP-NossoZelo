@@ -1,14 +1,14 @@
 import { FormPage } from "@/components/FormPage";
 import { PageHeader } from "@/components/PageHeader";
 import { apiGet } from "@/lib/api";
-import { categoryOptions, financialStatusOptions } from "@/lib/page-config";
+import { categoriesForTipo, categoryOptions, financialStatusOptions } from "@/lib/page-config";
 
 export default async function NovaContaPagarPage() {
   const [categories, services] = await Promise.all([
     apiGet<any[]>("/erp/categorias"),
     apiGet<any[]>("/erp/servicos"),
   ]);
-  const activeCategories = categories.filter((category) => category.ativo);
+  const activeCategories = categoriesForTipo(categories.filter((category) => category.ativo), "DESPESA");
   return (
     <>
       <PageHeader title="Nova conta a pagar" description="Cadastre despesa futura ou recorrente." />

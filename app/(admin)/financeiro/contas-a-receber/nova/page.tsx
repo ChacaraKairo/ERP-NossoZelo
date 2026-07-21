@@ -1,7 +1,7 @@
 import { FormPage } from "@/components/FormPage";
 import { PageHeader } from "@/components/PageHeader";
 import { apiGet } from "@/lib/api";
-import { categoryOptions, financialStatusOptions } from "@/lib/page-config";
+import { categoriesForTipo, categoryOptions, financialStatusOptions } from "@/lib/page-config";
 
 export default async function NovaContaReceberPage() {
   const [categories, clientes, prestadores, assinaturas] = await Promise.all([
@@ -10,7 +10,7 @@ export default async function NovaContaReceberPage() {
     apiGet<any[]>("/erp/prestadores"),
     apiGet<any[]>("/erp/assinaturas"),
   ]);
-  const activeCategories = categories.filter((category) => category.ativo);
+  const activeCategories = categoriesForTipo(categories.filter((category) => category.ativo), "RECEITA");
   return (
     <>
       <PageHeader title="Nova conta a receber" description="Cadastre um valor esperado de cliente, prestador ou assinatura." />

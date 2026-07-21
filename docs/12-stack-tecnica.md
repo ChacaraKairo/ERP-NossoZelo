@@ -59,12 +59,12 @@ Estrutura recomendada se for separado:
 
 - frontend Next.js;
 - backend API Node/Express ou API routes;
-- MySQL;
+- PostgreSQL;
 - Prisma.
 
 ## Banco de dados
 
-- MySQL;
+- PostgreSQL;
 - Prisma ORM;
 - migrations obrigatórias;
 - seeds iniciais;
@@ -101,7 +101,7 @@ Opções iniciais:
 
 - Vercel para frontend/admin;
 - Render para backend;
-- Railway ou MySQL gerenciado para banco;
+- Railway ou PostgreSQL gerenciado para banco;
 - AWS S3 para arquivos;
 - Cloudflare para DNS;
 - UptimeRobot para monitoramento.

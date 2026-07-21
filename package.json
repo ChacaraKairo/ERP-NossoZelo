@@ -12,6 +12,8 @@
     "dev:web": "next dev",
     "dev:api": "npm run build:api && node dist-api/apps/api/src/main.js",
     "dev:all": "concurrently \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:stop": "node scripts/stop-dev-servers.mjs",
+    "dev:fresh": "npm run dev:stop && npm run db:up && npm run db:push && npm run db:seed && npm run dev:all",
     "build": "prisma generate && npm run build:api && next build",
     "build:web": "next build",
     "build:api": "node scripts/clean-api-build.mjs && tsc -p apps/api/tsconfig.json && node scripts/write-api-package.mjs",
@@ -25,7 +27,7 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
-    "test": "npm run typecheck"
+    "test": "vitest run"
   },
   "repository": {
     "type": "git",
@@ -47,12 +49,14 @@
     "@nestjs/core": "^11.1.28",
     "@nestjs/platform-express": "^11.1.28",
     "@prisma/client": "^5.22.0",
+    "@types/pdfkit": "^0.17.6",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.4.2",
     "lucide-react": "^1.25.0",
     "next": "^16.2.10",
+    "pdfkit": "^0.19.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "reflect-metadata": "^0.2.2",
@@ -70,6 +74,7 @@
     "eslint-config-next": "^16.2.10",
     "prisma": "^5.22.0",
     "tsx": "^4.23.1",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
   }
 }

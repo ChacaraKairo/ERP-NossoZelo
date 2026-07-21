@@ -225,7 +225,7 @@ Essa tela deve ajudar a identificar crescimento de custo em serviços como AWS, 
 - IAM, sem custo direto, mas vinculado à AWS.
 - Render.
 - Vercel.
-- Railway ou provedor do MySQL.
+- Railway ou provedor do PostgreSQL.
 - Upstash.
 - Cloudflare.
 - Registro.br.

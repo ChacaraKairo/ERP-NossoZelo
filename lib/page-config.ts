@@ -1,4 +1,5 @@
 import type { Column } from "@/components/DataTable";
+import type { Field } from "@/components/FormPage";
 
 export const priorityOptions = [
   { label: "Baixa", value: "BAIXA" },
@@ -32,7 +33,12 @@ export function categoryOptions(categories: { id: number; nome: string; tipo: st
   return categories.map((category) => ({
     label: `${category.nome} · ${category.tipo.toLowerCase()}`,
     value: category.id,
+    tipo: category.tipo,
   }));
+}
+
+export function categoriesForTipo(categories: { id: number; nome: string; tipo: string }[], tipo: "RECEITA" | "DESPESA") {
+  return categories.filter((category) => category.tipo === tipo || category.tipo === "AMBOS");
 }
 
 export const columns = {
@@ -55,6 +61,15 @@ export const columns = {
     { key: "periodicidade", label: "Recorrência" },
     { key: "status", label: "Status", type: "status" },
     { key: "servicoContratado", label: "Serviço", render: (row: any) => row.servicoContratado?.nome ?? "-" },
+  ],
+  gastosFixos: [
+    { key: "descricao", label: "Descrição" },
+    { key: "fornecedor", label: "Fornecedor" },
+    { key: "categoria", label: "Categoria", render: (row: any) => row.categoria?.nome ?? "-" },
+    { key: "valorPrevisto", label: "Valor mensal", type: "money" },
+    { key: "diaVencimento", label: "Dia venc." },
+    { key: "obrigatorio", label: "Obrigatório", render: (row: any) => (row.obrigatorio ? "Sim" : "Não") },
+    { key: "ativo", label: "Status", render: (row: any) => (row.ativo ? "ativo" : "inativo") },
   ],
   contasReceber: [
     { key: "descricao", label: "Descrição" },
@@ -136,3 +151,37 @@ export const serviceFields = [
   { name: "descricao", label: "Descrição", type: "textarea", full: true },
   { name: "observacoes", label: "Observações", type: "textarea", full: true },
 ] as const;
+
+export function lancamentoFields(categories: { id: number; nome: string; tipo: string }[], values: Record<string, any> = {}) {
+  return [
+    { name: "tipo", label: "Tipo", type: "select", options: financialTypeOptions, defaultValue: values.tipo ?? "RECEITA", required: true },
+    { name: "categoriaId", label: "Categoria", type: "select", options: categoryOptions(categories), defaultValue: values.categoriaId, required: true },
+    { name: "descricao", label: "Descrição", defaultValue: values.descricao, required: true },
+    { name: "valorBruto", label: "Valor bruto", type: "number", defaultValue: values.valorBruto, required: true },
+    { name: "valorTaxas", label: "Taxas", type: "number", defaultValue: values.valorTaxas ?? 0 },
+    { name: "valorLiquido", label: "Valor líquido", type: "number", defaultValue: values.valorLiquido, required: true },
+    { name: "moeda", label: "Moeda", defaultValue: values.moeda ?? "BRL" },
+    { name: "dataCompetencia", label: "Competência", type: "date", defaultValue: inputDate(values.dataCompetencia), required: true },
+    { name: "dataVencimento", label: "Vencimento", type: "date", defaultValue: inputDate(values.dataVencimento) },
+    { name: "dataPagamento", label: "Pagamento", type: "date", defaultValue: inputDate(values.dataPagamento) },
+    { name: "status", label: "Status", type: "select", options: financialStatusOptions, defaultValue: values.status ?? "PENDENTE", required: true },
+    { name: "formaPagamento", label: "Forma de pagamento", defaultValue: values.formaPagamento },
+    { name: "origem", label: "Origem", defaultValue: values.origem ?? "manual" },
+    { name: "observacoes", label: "Observações", type: "textarea", defaultValue: values.observacoes, full: true },
+  ] satisfies Field[];
+}
+
+export function serviceFieldsWithValues(values: Record<string, any> = {}) {
+  return serviceFields.map((field) => {
+    const typedField = field as Field;
+    return {
+      ...typedField,
+      defaultValue: typedField.type === "date" ? inputDate(values[typedField.name]) : values[typedField.name] ?? typedField.defaultValue,
+    };
+  }) satisfies Field[];
+}
+
+function inputDate(value: Date | string | null | undefined) {
+  if (!value) return "";
+  return new Date(value).toISOString().slice(0, 10);
+}

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
-import { publicApiUrl } from "@/lib/api-url";
+import { login } from "./actions";
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ erro?: string }> }) {
   const user = await getCurrentUser();
@@ -10,7 +10,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
 
   return (
     <main className="login-page">
-      <form className="login-card" action={`${publicApiUrl}/api/auth/login`} method="post">
+      <form className="login-card" action={login}>
         <div className="brand" style={{ color: "#17202a", padding: 0, marginBottom: 22 }}>
           <span className="brand-mark">
             <ShieldCheck size={19} />
@@ -22,11 +22,11 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         {params.erro ? <p className="badge danger">Credenciais inválidas</p> : null}
         <div className="field">
           <label htmlFor="email">E-mail</label>
-          <input id="email" name="email" type="email" defaultValue="admin@nossozelo.com.br" required />
+          <input id="email" name="email" type="email" autoComplete="username" required />
         </div>
         <div className="field" style={{ marginTop: 12 }}>
           <label htmlFor="senha">Senha</label>
-          <input id="senha" name="senha" type="password" defaultValue="admin123" required />
+          <input id="senha" name="senha" type="password" autoComplete="current-password" required />
         </div>
         <button className="button" style={{ width: "100%", justifyContent: "center", marginTop: 18 }}>
           Entrar

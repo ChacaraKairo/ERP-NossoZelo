@@ -3,6 +3,8 @@ import {
   BarChart3,
   BriefcaseBusiness,
   ClipboardList,
+  Database,
+  DatabaseBackup,
   FileText,
   Gauge,
   Headset,
@@ -10,6 +12,7 @@ import {
   LayoutDashboard,
   LogOut,
   ReceiptText,
+  SquareCheckBig,
   Settings,
   ShieldCheck,
   Users,
@@ -33,7 +36,10 @@ const nav = [
   ] },
   { section: "Controle", items: [
     { href: "/relatorios", label: "Relatórios", icon: BarChart3 },
+    { href: "/fechamento", label: "Fechamento", icon: SquareCheckBig },
+    { href: "/backup", label: "Backup", icon: DatabaseBackup },
     { href: "/auditoria", label: "Auditoria", icon: Gauge },
+    { href: "/configuracoes/banco", label: "Banco", icon: Database },
     { href: "/configuracoes", label: "Configurações", icon: Settings },
   ] },
 ];

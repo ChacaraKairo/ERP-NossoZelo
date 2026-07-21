@@ -1,0 +1,31 @@
+# Checklist MVP Real
+
+- [x] Frontend Next.js.
+- [x] Backend NestJS.
+- [x] PostgreSQL com Prisma.
+- [x] Docker Compose para banco local.
+- [x] Login administrativo.
+- [x] Sessão com token aleatório e hash no banco.
+- [x] Cookie sem ID puro do usuário.
+- [x] Logout revoga sessão.
+- [x] Request ID por requisição.
+- [x] RBAC inicial.
+- [x] Auditoria com sanitização.
+- [x] Dashboard com dados do banco.
+- [x] CRUD API para recursos principais.
+- [x] Soft delete nos registros críticos.
+- [x] Conta paga gera lançamento financeiro.
+- [x] Conta recebida gera lançamento financeiro.
+- [x] Gastos fixos mensais obrigatórios geram contas a pagar.
+- [x] Categorias financeiras filtradas por receita/despesa nos formulários.
+- [x] Endpoint de alertas calculados.
+- [x] Fechamento mensal com resumo, pendências e registro auditável.
+- [x] PDFs estilizados para relatórios P0.
+- [x] Exportação manual de dados em JSON.
+- [x] Exportação financeira em CSV.
+- [x] Registro visual do último backup manual.
+- [ ] Upload de anexos em S3.
+- [ ] Telas completas de edição para todos os recursos.
+- [ ] Integração real com banco do marketplace.
+- [ ] Restore de backup PostgreSQL testado em ambiente limpo.
+- [ ] Fluxo obrigatório de troca de senha.

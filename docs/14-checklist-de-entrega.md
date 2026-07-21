@@ -60,7 +60,7 @@
 - [ ] IAM cadastrado.
 - [ ] Render cadastrado.
 - [ ] Vercel cadastrado.
-- [ ] Banco MySQL cadastrado.
+- [ ] Banco PostgreSQL cadastrado.
 - [ ] Cloudflare cadastrado.
 - [ ] Registro.br cadastrado.
 - [ ] Asaas cadastrado.

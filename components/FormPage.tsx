@@ -1,15 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { publicApiUrl } from "@/lib/api-url";
 
-type Field = {
+export type Field = {
   name: string;
   label: string;
   type?: "text" | "number" | "date" | "textarea" | "select" | "checkbox";
   required?: boolean;
-  options?: { label: string; value: string | number }[];
+  options?: { label: string; value: string | number; tipo?: string }[];
   defaultValue?: string | number | boolean;
   full?: boolean;
 };
@@ -18,14 +18,21 @@ export function FormPage({
   resource,
   redirectTo,
   fields,
+  method = "POST",
+  resourcePath,
 }: {
   resource: string;
   redirectTo: string;
-  fields: Field[];
+  fields: readonly Field[];
+  method?: "POST" | "PATCH";
+  resourcePath?: string;
 }) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const tipoField = fields.find((field) => field.name === "tipo");
+  const [selectedTipo, setSelectedTipo] = useState(String(tipoField?.defaultValue ?? ""));
+  const categoryFieldName = "categoriaId";
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -38,8 +45,8 @@ export function FormPage({
         field.type === "checkbox" ? formData.get(field.name) === "on" : formData.get(field.name),
       ]),
     );
-    const response = await fetch(`${publicApiUrl}/api/erp/${resource}`, {
-      method: "POST",
+    const response = await fetch(`${publicApiUrl}/api/erp/${resourcePath ?? resource}`, {
+      method,
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify(payload),
@@ -63,14 +70,12 @@ export function FormPage({
             {field.type === "textarea" ? (
               <textarea id={field.name} name={field.name} required={field.required} defaultValue={String(field.defaultValue ?? "")} />
             ) : field.type === "select" ? (
-              <select id={field.name} name={field.name} required={field.required} defaultValue={String(field.defaultValue ?? "")}>
-                <option value="">Selecione</option>
-                {field.options?.map((option) => (
-                  <option value={option.value} key={String(option.value)}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              <SelectField
+                field={field}
+                selectedTipo={selectedTipo}
+                onTipoChange={field.name === "tipo" ? setSelectedTipo : undefined}
+                filterByTipo={field.name === categoryFieldName && Boolean(tipoField)}
+              />
             ) : field.type === "checkbox" ? (
               <input id={field.name} name={field.name} type="checkbox" defaultChecked={Boolean(field.defaultValue)} />
             ) : (
@@ -90,5 +95,42 @@ export function FormPage({
         {saving ? "Salvando..." : "Salvar"}
       </button>
     </form>
+  );
+}
+
+function SelectField({
+  field,
+  selectedTipo,
+  onTipoChange,
+  filterByTipo,
+}: {
+  field: Field;
+  selectedTipo: string;
+  onTipoChange?: (value: string) => void;
+  filterByTipo: boolean;
+}) {
+  const options = useMemo(() => {
+    if (!filterByTipo || !selectedTipo) return field.options ?? [];
+    return (field.options ?? []).filter((option) => {
+      const tipo = "tipo" in option ? String(option.tipo) : "";
+      return !tipo || tipo === selectedTipo || tipo === "AMBOS";
+    });
+  }, [field.options, filterByTipo, selectedTipo]);
+
+  return (
+    <select
+      id={field.name}
+      name={field.name}
+      required={field.required}
+      defaultValue={String(field.defaultValue ?? "")}
+      onChange={onTipoChange ? (event) => onTipoChange(event.target.value) : undefined}
+    >
+      <option value="">Selecione</option>
+      {options.map((option) => (
+        <option value={option.value} key={String(option.value)}>
+          {option.label}
+        </option>
+      ))}
+    </select>
   );
 }
